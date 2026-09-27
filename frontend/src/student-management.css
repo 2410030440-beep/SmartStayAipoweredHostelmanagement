@@ -1,0 +1,272 @@
+.student-management-panel {
+  overflow: hidden;
+}
+
+.student-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.student-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 680px;
+  color: var(--muted);
+}
+
+.student-search input {
+  min-width: 0;
+  flex: 1;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  outline: none;
+}
+
+.student-search input:focus {
+  border-color: var(--green);
+}
+
+.student-search .button {
+  padding: 10px 14px;
+}
+
+.student-count,
+.student-muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.student-table-wrap {
+  overflow-x: auto;
+}
+
+.student-table {
+  min-width: 1120px;
+}
+
+.student-table th {
+  white-space: nowrap;
+}
+
+.student-table td {
+  vertical-align: middle;
+}
+
+.student-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.student-actions button,
+.student-notice button {
+  display: inline-grid;
+  place-items: center;
+  padding: 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted);
+}
+
+.student-actions button:hover,
+.student-notice button:hover {
+  color: var(--ink);
+  border-color: var(--green);
+}
+
+.student-actions button:disabled {
+  cursor: wait;
+  opacity: .5;
+}
+
+.student-status {
+  display: inline-block;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: var(--mint);
+  color: #277255;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.student-status.inactive {
+  background: var(--coral);
+  color: #a04435;
+}
+
+.student-status.on_leave {
+  background: var(--amber);
+  color: #916a1e;
+}
+
+.student-loading,
+.student-empty {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.student-empty h2 {
+  margin: 12px 0 5px;
+  color: var(--ink);
+  font-size: 21px;
+}
+
+.student-empty p {
+  margin: 0;
+}
+
+.student-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: var(--blue);
+  color: var(--green);
+}
+
+.student-notice,
+.student-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.student-notice {
+  background: var(--mint);
+  color: #277255;
+}
+
+.student-error {
+  background: var(--coral);
+  color: #a04435;
+}
+
+.student-modal {
+  width: min(720px, calc(100vw - 32px));
+}
+
+.student-details {
+  width: min(620px, calc(100vw - 32px));
+}
+
+.student-modal .modal-head,
+.student-details .modal-head {
+  align-items: flex-start;
+}
+
+.student-modal .modal-head h2,
+.student-details .modal-head h2 {
+  margin: 6px 0 0;
+}
+
+.student-form {
+  margin-top: 22px;
+}
+
+.student-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.student-form-grid label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.student-form-grid input,
+.student-form-grid select {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+}
+
+.student-form-grid input:focus,
+.student-form-grid select:focus {
+  border-color: var(--green);
+}
+
+.student-form-grid input:disabled {
+  background: var(--paper);
+  color: var(--muted);
+}
+
+.required-mark {
+  color: #a04435;
+}
+
+.student-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.student-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.student-detail-grid div {
+  display: grid;
+  gap: 5px;
+  padding: 13px;
+  background: #fff;
+}
+
+.student-detail-grid small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.student-detail-grid strong {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .student-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .student-search {
+    max-width: none;
+  }
+
+  .student-form-grid,
+  .student-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
