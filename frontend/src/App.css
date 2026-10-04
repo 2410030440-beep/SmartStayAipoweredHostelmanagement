@@ -751,3 +751,17 @@ td strong{color:#29445f}
   .admin-room-summary>.soft-link{grid-column:span 2}
   .student-dashboard-grid{gap:12px}
 }
+
+
+/* Final landing cleanup for the light-blue product direction */
+.landing-v3{background:linear-gradient(180deg,#f8fbff 0%,#f4f8fc 55%,#fff 100%)}
+.landing-nav-v3{background:rgba(248,251,255,.92)!important;border-bottom-color:#dfe8f2!important}
+.landing-v3 .flow-band-v3{background:linear-gradient(180deg,#eef6ff 0%,#f8fbff 100%)}
+.landing-v3 .light-heading .section-kicker{color:#2563eb}
+.landing-v3 .light-heading h2{color:#10233f}
+.landing-v3 .light-heading h2 em{color:#2563eb}
+.landing-v3 .flow-v3>div{background:#fff;border-color:#dce7f2}
+.landing-v3 .flow-v3>div>span{color:#2563eb}
+.landing-v3 .flow-v3 strong{color:#193754}
+.landing-v3 .flow-v3 small{color:#70849a}
+.landing-auth-links{display:none!important}
