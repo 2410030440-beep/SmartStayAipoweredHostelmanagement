@@ -28,21 +28,140 @@ function Landing() { const navigate = useNavigate(); return <div className="land
 
 function Login({ expectedRole }: { expectedRole?: 'STUDENT' | 'ADMIN' }) { const navigate = useNavigate(); const location = useLocation(); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [error, setError] = useState(''); const [loading, setLoading] = useState(false); const role = expectedRole ?? (location.pathname === '/admin-login' ? 'ADMIN' : 'STUDENT'); const handleSubmit = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const normalizedEmail = email.trim(); if (!normalizedEmail || !password) { setError('Enter your email and password to continue.'); return } setError(''); setLoading(true); try { const user = await loginUser(normalizedEmail, password); if (user.role !== role) { logoutUser(); setError(role === 'ADMIN' ? 'This account is for student access. Please use Student Login.' : 'This account is for administrator access. Please use Admin Login.'); return } navigate(role === 'ADMIN' ? '/admin' : '/student', { replace: true }) } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Unable to sign in right now. Please try again.') } finally { setLoading(false) } }; return <div className="login-page"><div className="login-art"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link><div><Badge tone="dark">WELCOME TO A BETTER HOSTEL DAY</Badge><h1>Good systems make<br /><em>room for people.</em></h1><p>{role === 'ADMIN' ? 'Sign in to manage your SmartStay hostel workspace.' : 'Sign in to your SmartStay student workspace.'}</p></div><span className="login-art-foot">SmartStay / Campus operations, made clear.</span></div><div className="login-form"><span className="eyebrow">SECURE SIGN IN</span><h2>{role === 'ADMIN' ? 'Admin Login' : 'Student Login'}</h2><p className="muted">{role === 'ADMIN' ? 'Use your administrator account to continue.' : 'Use your student account to continue.'}</p><form className="auth-form" onSubmit={handleSubmit} noValidate><label>Email address<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" placeholder="you@example.com" disabled={loading} /></label><label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" placeholder="Enter your password" disabled={loading} /></label>{error && <p className="auth-error" role="alert">{error}</p>}<button className="button auth-submit" type="submit" disabled={loading}>{loading ? 'Signing in...' : <>Sign in <ArrowRight size={16} /></>}</button></form><div className="login-note"><ShieldCheck size={17} /><span><strong>{role === 'ADMIN' ? 'Administrator access' : 'Student access'}</strong><br />Your role is verified by the SmartStay backend.</span></div></div></div> }
 
-function Dashboard({ role }: { role: Role }) { const [open, setOpen] = useState(false); const pages = role === 'student' ? studentPages : adminPages; const location = useLocation(); const current = pages.find((page) => location.pathname === page.path) ?? pages[0]; return <div className="app-shell"><aside className={open ? 'sidebar open' : 'sidebar'}><div className="side-brand"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link><button className="close-mobile" onClick={() => setOpen(false)}><X /></button></div><div className="workspace-label">{role === 'student' ? 'STUDENT WORKSPACE' : 'WARDEN WORKSPACE'}</div><nav className="side-nav">{pages.map(({ label, icon: Icon, path }) => <NavLink onClick={() => setOpen(false)} className={({ isActive }) => isActive ? 'active' : ''} to={path} key={path}><Icon size={18} />{label}{label === 'Notifications' && <span className="nav-count">3</span>}</NavLink>)}</nav><div className="side-bottom"><div className="help-card"><Sparkles size={17} /><strong>Future-ready by design</strong><small>Connect your FastAPI services when you’re ready.</small></div><button className="profile-mini"><span className="avatar">{role === 'student' ? 'AM' : 'RK'}</span><span><strong>{role === 'student' ? 'Aarav Mehta' : 'Rhea Kapoor'}</strong><small>{role === 'student' ? 'Student' : 'Administrator'}</small></span><MoreHorizontal size={17} /></button></div></aside><div className="main-shell"><header className="app-header"><button className="menu-button" onClick={() => setOpen(true)}><Menu /></button><div className="breadcrumb"><span>Workspace</span><ArrowRight size={13} /><strong>{current.label}</strong></div><div className="header-actions"><SearchInput /><button className="icon-button"><Bell size={18} /><i /></button><div className="header-avatar">{role === 'student' ? 'AM' : 'RK'}</div></div></header><main className="dashboard-main"><Routes><Route index element={role === 'student' ? <StudentHome /> : <AdminHome />} /><Route path="*" element={role === 'student' ? <StudentPage path={location.pathname} /> : <AdminPage path={location.pathname} />} /></Routes></main></div></div> }
+function Dashboard({ role }: { role: Role }) {
+  const [open, setOpen] = useState(false)
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null)
+  const pages = role === 'student' ? studentPages : adminPages
+  const location = useLocation()
+  const current = pages.find((page) => location.pathname === page.path) ?? pages[0]
+  const initials = currentUser?.name?.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase() || (role === 'student' ? 'ST' : 'AD')
+
+  useEffect(() => {
+    let cancelled = false
+    getCurrentUser().then((user) => {
+      if (!cancelled) setCurrentUser({ name: user.name, email: user.email })
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  const groupedPages = role === 'student'
+    ? [
+        { label: 'Overview', items: pages.slice(0, 1) },
+        { label: 'My stay', items: pages.slice(1, 5) },
+        { label: 'Requests & services', items: pages.slice(5, 9) },
+        { label: 'Finance & updates', items: pages.slice(9) },
+      ]
+    : [
+        { label: 'Overview', items: pages.slice(0, 1) },
+        { label: 'People & spaces', items: pages.slice(1, 4) },
+        { label: 'Operations', items: pages.slice(4, 10) },
+        { label: 'Insights & system', items: pages.slice(10) },
+      ]
+
+  return <div className="app-shell">
+    <div className={open ? 'mobile-scrim show' : 'mobile-scrim'} onClick={() => setOpen(false)} />
+    <aside className={open ? 'sidebar open' : 'sidebar'}>
+      <div className="side-brand">
+        <Link className="brand" to="/">
+          <span className="brand-mark"><Building2 size={17} /></span>
+          smart<span>stay</span>
+        </Link>
+        <button className="close-mobile" onClick={() => setOpen(false)} aria-label="Close navigation"><X /></button>
+      </div>
+
+      <div className="workspace-switcher">
+        <span className="workspace-icon">{role === 'student' ? <UserRound size={15} /> : <ShieldCheck size={15} />}</span>
+        <span><small>{role === 'student' ? 'Personal space' : 'Operations space'}</small><strong>{role === 'student' ? 'Student workspace' : 'Warden workspace'}</strong></span>
+        <MoreHorizontal size={15} />
+      </div>
+
+      <nav className="side-nav side-nav-grouped">
+        {groupedPages.map((group) => <div className="nav-group" key={group.label}>
+          <span className="nav-group-label">{group.label}</span>
+          {group.items.map(({ label, icon: Icon, path }) =>
+            <NavLink
+              onClick={() => setOpen(false)}
+              className={({ isActive }) => isActive ? 'active' : ''}
+              to={path}
+              key={path}
+              end={path === '/student' || path === '/admin'}
+            >
+              <span className="nav-icon"><Icon size={17} /></span>
+              <span>{label}</span>
+              {label === 'Notifications' && <span className="nav-count">3</span>}
+            </NavLink>
+          )}
+        </div>)}
+      </nav>
+
+      <div className="side-bottom">
+        <div className="help-card premium-help">
+          <span className="help-icon"><Sparkles size={16} /></span>
+          <div><strong>SmartStay assistant</strong><small>AI insights are coming to your workspace.</small></div>
+        </div>
+        <div className="profile-mini">
+          <span className="avatar">{initials}</span>
+          <span className="profile-mini-copy">
+            <strong>{currentUser?.name ?? (role === 'student' ? 'Student' : 'Administrator')}</strong>
+            <small>{currentUser?.email ?? (role === 'student' ? 'Student account' : 'Administrator account')}</small>
+          </span>
+          <button className="profile-menu" aria-label="Account options"><MoreHorizontal size={17} /></button>
+        </div>
+      </div>
+    </aside>
+
+    <div className="main-shell">
+      <header className="app-header">
+        <div className="header-left">
+          <button className="menu-button" onClick={() => setOpen(true)} aria-label="Open navigation"><Menu /></button>
+          <div className="breadcrumb">
+            <span>{role === 'student' ? 'Student workspace' : 'Warden workspace'}</span>
+            <ArrowRight size={13} />
+            <strong>{current.label}</strong>
+          </div>
+        </div>
+        <div className="header-actions">
+          <SearchInput placeholder="Search SmartStay..." />
+          <button className="icon-button header-notification" aria-label="Notifications" onClick={() => location.pathname.startsWith('/student') ? window.location.assign('/student/notifications') : window.location.assign('/admin/notifications')}>
+            <Bell size={18} /><i />
+          </button>
+          <div className="header-avatar" title={currentUser?.name ?? ''}>{initials}</div>
+        </div>
+      </header>
+
+      <main className="dashboard-main">
+        <Routes>
+          <Route index element={role === 'student' ? <StudentHome /> : <AdminHome />} />
+          <Route path="*" element={role === 'student' ? <StudentPage path={location.pathname} /> : <AdminPage path={location.pathname} />} />
+        </Routes>
+      </main>
+    </div>
+  </div>
+}
 
 function PageHeader({ eyebrow, title, copy, action }: { eyebrow: string; title: string; copy: string; action?: React.ReactNode }) { return <div className="page-header"><div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{copy}</p></div>{action}</div> }
 function StatCard({ label, value, note, tone, icon: Icon }: { label: string; value: string; note: string; tone: string; icon?: typeof Activity }) { return <div className={`stat-card ${tone}`}><div className="stat-top"><span>{label}</span>{Icon && <Icon size={18} />}</div><strong>{value}</strong><small>{note}</small></div> }
 function StudentHome() {
+  const navigate = useNavigate()
   const [profile, setProfile] = useState<Student | null>(null)
   const [attendance, setAttendance] = useState<AttendanceSummary | null>(null)
   const [error, setError] = useState('')
+
   useEffect(() => {
     let cancelled = false
     Promise.all([studentDashboardService.getProfile(), attendanceService.getOverview()])
-      .then(([studentProfile, attendanceSummary]) => { if (!cancelled) { setProfile(studentProfile); setAttendance(attendanceSummary) } })
-      .catch((requestError) => { if (!cancelled) setError(requestError instanceof Error ? requestError.message : 'Unable to load your dashboard.') })
+      .then(([studentProfile, attendanceSummary]) => {
+        if (!cancelled) {
+          setProfile(studentProfile)
+          setAttendance(attendanceSummary)
+        }
+      })
+      .catch((requestError) => {
+        if (!cancelled) setError(requestError instanceof Error ? requestError.message : 'Unable to load your dashboard.')
+      })
     return () => { cancelled = true }
   }, [])
+
   const displayName = profile?.full_name ?? 'Student'
   const roomLabel = profile?.room_number ?? 'Not allocated'
   const attendanceValue = attendance ? `${attendance.attendance_percentage}%` : '—'
@@ -50,22 +169,109 @@ function StudentHome() {
   const absentValue = attendance?.absent_days ?? 0
   const totalValue = attendance?.total_days ?? 0
   const presentWidth = attendance && attendance.total_days > 0 ? (attendance.present_days / attendance.total_days) * 100 : 0
-  return <><PageHeader eyebrow="YOUR SMARTSTAY" title={`Good morning, ${displayName.split(' ')[0]}.`} copy="Here’s what’s happening around your hostel today." action={<Button><Plus size={17} /> New request</Button>} />
-    {error && <p className="auth-error" role="alert">{error}</p>}
-    <div className="stats-grid">
+
+  return <>
+    <div className="dashboard-welcome">
+      <div>
+        <span className="eyebrow">MONDAY · SMARTSTAY</span>
+        <h1>Good morning, {displayName.split(' ')[0]} <span>👋</span></h1>
+        <p>A clear snapshot of your hostel life, requests and daily essentials.</p>
+      </div>
+      <div className="welcome-actions">
+        <button className="quick-action secondary" onClick={() => navigate('/student/attendance')}><ClipboardCheck size={16} /> Attendance</button>
+        <button className="quick-action primary" onClick={() => navigate('/student/complaints')}><Plus size={16} /> New request</button>
+      </div>
+    </div>
+
+    {error && <div className="dashboard-alert"><AlertCircle size={17} /><span>{error}</span></div>}
+
+    <div className="stats-grid student-stat-grid">
       <StatCard label="Attendance" value={attendanceValue} note={attendance ? `${presentValue} present of ${totalValue} recorded days` : 'Loading your attendance'} tone="mint" icon={ClipboardCheck} />
       <StatCard label="Room" value={roomLabel} note={profile ? profile.status.replace('_', ' ') : 'Loading room status'} tone="coral" icon={BedDouble} />
       <StatCard label="Course" value={profile?.course ?? '—'} note={profile?.year ?? 'Loading academic details'} tone="blue" icon={FileText} />
       <StatCard label="Student ID" value={profile?.student_id ?? '—'} note={profile?.email ?? 'Loading profile'} tone="amber" icon={UserRound} />
     </div>
-    <div className="dashboard-grid">
-      <section className="panel announcements"><div className="panel-heading"><div><span className="eyebrow">KEEP IN THE LOOP</span><h2>Announcements</h2></div><Link to="/student/notifications">View all <ArrowRight size={15} /></Link></div>{announcements.map((item) => <div className="announcement" key={item.title}><span className="announcement-icon"><Bell size={17} /></span><div><div className="item-meta"><Badge tone={item.tag === 'Maintenance' ? 'amber' : 'soft'}>{item.tag}</Badge><span>{item.date}</span></div><strong>{item.title}</strong><p>{item.body}</p></div></div>)}</section>
-      <section className="panel room-card"><div className="room-top"><div><span className="eyebrow">YOUR ROOM</span><h2>{roomLabel}</h2><p>{profile ? `${profile.gender} · ${profile.status.replace('_', ' ')}` : 'Loading room information'}</p></div><span className="room-illustration"><BedDouble size={34} /></span></div><div className="room-line"><span>Student ID</span><strong>{profile?.student_id ?? '—'}</strong></div><div className="room-line"><span>Phone</span><strong>{profile?.phone ?? '—'}</strong></div><Link className="panel-link" to="/student/room">View room details <ArrowRight size={15} /></Link></section>
+
+    <div className="dashboard-grid hero-dashboard-grid">
+      <section className="panel room-card student-room-card">
+        <div className="room-top">
+          <div>
+            <div className="eyebrow light">YOUR ROOM</div>
+            <h2>{roomLabel}</h2>
+            <p>{profile ? `${profile.gender} · ${profile.status.replace('_', ' ')} · SmartStay residence` : 'Loading room information'}</p>
+          </div>
+          <span className="room-illustration"><BedDouble size={31} /></span>
+        </div>
+        <div className="room-occupancy-pill"><span><i className="dot mint" /> Current allocation</span><strong>{profile?.room_number ? 'Active' : 'Pending'}</strong></div>
+        <div className="room-detail-mini-grid">
+          <div><span>Student ID</span><strong>{profile?.student_id ?? '—'}</strong></div>
+          <div><span>Phone</span><strong>{profile?.phone ?? '—'}</strong></div>
+        </div>
+        <Link className="panel-link light-link" to="/student/room">View room details <ArrowRight size={15} /></Link>
+      </section>
+
+      <section className="panel announcements">
+        <div className="panel-heading">
+          <div><span className="eyebrow">KEEP IN THE LOOP</span><h2>Campus updates</h2></div>
+          <Link to="/student/notifications">View all <ArrowRight size={15} /></Link>
+        </div>
+        <div className="announcement-list">
+          {announcements.slice(0, 3).map((item) => <div className="announcement" key={item.title}>
+            <span className="announcement-icon"><Bell size={16} /></span>
+            <div>
+              <div className="item-meta"><Badge tone={item.tag === 'Maintenance' ? 'amber' : 'soft'}>{item.tag}</Badge><span>{item.date}</span></div>
+              <strong>{item.title}</strong>
+              <p>{item.body}</p>
+            </div>
+          </div>)}
+        </div>
+      </section>
     </div>
+
     <div className="dashboard-grid lower">
-      <section className="panel"><div className="panel-heading"><div><span className="eyebrow">QUICK PULSE</span><h2>Attendance overview</h2></div><Link to="/student/attendance">Details <ArrowRight size={15} /></Link></div><div className="attendance-pulse"><div className="big-ring"><strong>{attendanceValue}</strong><small>overall</small></div><div className="pulse-bars"><div><span>Present</span><strong>{presentValue} days</strong><i><b style={{ width: `${presentWidth}%` }} /></i></div><div><span>Absent</span><strong>{absentValue} days</strong><i><b className="coral-fill" style={{ width: `${totalValue ? (absentValue / totalValue) * 100 : 0}%` }} /></i></div></div></div></section>
-      <section className="panel"><div className="panel-heading"><div><span className="eyebrow">YOUR PROFILE</span><h2>Account details</h2></div><Link to="/student/profile">View profile <ArrowRight size={15} /></Link></div><div className="activity-list"><div><span className="activity-dot mint" /><span><strong>{displayName}</strong><small>{profile?.email ?? 'Loading email'}</small></span></div><div><span className="activity-dot blue" /><span><strong>{profile?.course ?? 'Course'}</strong><small>{profile?.year ?? 'Year'}</small></span></div><div><span className="activity-dot amber" /><span><strong>Account status</strong><small>{profile?.status ?? 'Loading'}</small></span></div></div></section>
+      <section className="panel attendance-panel">
+        <div className="panel-heading">
+          <div><span className="eyebrow">ACADEMIC PULSE</span><h2>Attendance overview</h2></div>
+          <Link to="/student/attendance">Open records <ArrowRight size={15} /></Link>
+        </div>
+        <div className="attendance-pulse">
+          <div className="big-ring"><strong>{attendanceValue}</strong><small>overall</small></div>
+          <div className="pulse-bars">
+            <div><span>Present</span><strong>{presentValue} days</strong><i><b style={{ width: `${presentWidth}%` }} /></i></div>
+            <div><span>Absent</span><strong>{absentValue} days</strong><i><b className="coral-fill" style={{ width: `${totalValue ? (absentValue / totalValue) * 100 : 0}%` }} /></i></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="panel profile-summary-panel">
+        <div className="panel-heading">
+          <div><span className="eyebrow">YOUR PROFILE</span><h2>Account snapshot</h2></div>
+          <Link to="/student/profile">View profile <ArrowRight size={15} /></Link>
+        </div>
+        <div className="profile-summary">
+          <span className="profile-summary-avatar">{displayName.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase()}</span>
+          <div><strong>{displayName}</strong><span>{profile?.course ?? 'Course'} · {profile?.year ?? 'Year'}</span><small>{profile?.email ?? 'Loading email'}</small></div>
+        </div>
+        <div className="profile-chip-row"><Badge tone="soft">{profile?.status ?? 'Loading'}</Badge>{profile?.room_number && <Badge tone="mint">Room allocated</Badge>}</div>
+        <div className="mini-actions">
+          <button onClick={() => navigate('/student/profile')}><UserRound size={15} /> Profile</button>
+          <button onClick={() => navigate('/student/record')}><FileText size={15} /> My record</button>
+        </div>
+      </section>
     </div>
+
+    <section className="panel quick-links-panel">
+      <div className="panel-heading"><div><span className="eyebrow">SHORTCUTS</span><h2>Get things done</h2></div><Sparkles size={18} className="section-icon" /></div>
+      <div className="quick-links-grid">
+        {[['Complaints', MessageSquare, '/student/complaints', 'Report an issue'], ['Leave request', CalendarDays, '/student/leave', 'Plan time away'], ['Visitors', Users, '/student/visitors', 'Register a guest'], ['Payments', WalletCards, '/student/payments', 'View your fees']].map(([label, Icon, path, copy]) => {
+          const QuickIcon = Icon as typeof Activity
+          return <button className="quick-link-card" key={String(label)} onClick={() => navigate(String(path))}>
+            <span className="quick-link-icon"><QuickIcon size={17} /></span>
+            <span><strong>{String(label)}</strong><small>{String(copy)}</small></span><ArrowRight size={15} />
+          </button>
+        })}
+      </div>
+    </section>
   </>
 }
 
