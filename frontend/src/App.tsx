@@ -69,7 +69,27 @@ function StudentHome() {
   </>
 }
 
-function StudentPage({ path }: { path: string }) { const title = path.split('/').pop() ?? ''; if (title === 'record') return <StudentManagement mode="student" />; if (title === 'room') return <RoomManagement mode="student" />; if (title === 'complaints') return <ComplaintPage />; if (title === 'attendance') return <AttendancePage />; if (title === 'mess') return <MessPage />; if (title === 'leave') return <LeavePage />; if (title === 'visitors') return <VisitorsPage />; if (title === 'payments') return <PaymentsPage />; if (title === 'notifications') return <NotificationsPage />; return <GenericPage title={title === 'room' ? 'My room' : 'My profile'} /> }
+function StudentPage({ path }: { path: string }) { const title = path.split('/').pop() ?? ''; if (title === 'profile') return <StudentProfilePage />; if (title === 'record') return <StudentManagement mode="student" />; if (title === 'room') return <RoomManagement mode="student" />; if (title === 'complaints') return <ComplaintPage />; if (title === 'attendance') return <AttendancePage />; if (title === 'mess') return <MessPage />; if (title === 'leave') return <LeavePage />; if (title === 'visitors') return <VisitorsPage />; if (title === 'payments') return <PaymentsPage />; if (title === 'notifications') return <NotificationsPage />; return <GenericPage title={title} /> }
+
+function StudentProfilePage() {
+  const [profile, setProfile] = useState<Student | null>(null)
+  const [error, setError] = useState('')
+  useEffect(() => {
+    let cancelled = false
+    studentDashboardService.getProfile()
+      .then((studentProfile) => { if (!cancelled) setProfile(studentProfile) })
+      .catch((requestError) => { if (!cancelled) setError(requestError instanceof Error ? requestError.message : 'Unable to load your profile.') })
+    return () => { cancelled = true }
+  }, [])
+  return <><PageHeader eyebrow="YOUR SMARTSTAY" title="My profile" copy="Your student information from the SmartStay database." />
+    {error && <p className="auth-error" role="alert">{error}</p>}
+    {!profile ? <section className="panel empty-state"><span className="spark"><UserRound size={20} /></span><h2>Loading your profile...</h2><p>We’re securely loading your student record.</p></section> :
+    <section className="room-detail-grid">
+      <section className="panel room-detail-hero"><div className="room-number">{profile.student_id}</div><Badge tone="mint">{profile.status.replace('_', ' ')}</Badge><p>{profile.full_name}</p><div className="room-detail-stats"><span><small>Email</small><strong>{profile.email}</strong></span><span><small>Course</small><strong>{profile.course}</strong></span><span><small>Year</small><strong>{profile.year}</strong></span></div></section>
+      <section className="panel"><div className="panel-heading"><h2>Personal details</h2><UserRound size={19} /></div><div className="facilities"><div><UserRound size={17} />{profile.full_name}</div><div><ShieldCheck size={17} />{profile.email}</div><div><MessageSquare size={17} />{profile.phone}</div><div><Building2 size={17} />{profile.room_number ?? 'No room allocated'}</div><div><FileText size={17} />{profile.gender}</div></div></section>
+    </section>}
+  </>
+}
 function ComplaintPage() { const [open, setOpen] = useState(false); const [filter, setFilter] = useState('All'); return <><PageHeader eyebrow="SUPPORT DESK" title="Complaints" copy="Raise an issue and keep track of what happens next." action={<Button onClick={() => setOpen(true)}><Plus size={17} /> New complaint</Button>} /><section className="panel"><div className="toolbar"><div className="tabs">{['All', 'Open', 'In Progress', 'Resolved'].map((x) => <button className={filter === x ? 'selected' : ''} onClick={() => setFilter(x)} key={x}>{x}</button>)}</div><SearchInput placeholder="Search complaints" /></div><div className="table-wrap"><table><thead><tr><th>Complaint</th><th>Category</th><th>Priority</th><th>Status</th><th>Date</th><th /></tr></thead><tbody>{complaints.filter((x) => filter === 'All' || x.status === filter).map((item) => <tr key={item.id}><td><strong>{item.subject}</strong><small>{item.id} · {item.assigned}</small></td><td>{item.category}</td><td><Badge tone={item.priority === 'High' ? 'coral' : item.priority === 'Medium' ? 'amber' : 'mint'}>{item.priority}</Badge></td><td><Badge tone={item.status === 'Resolved' ? 'mint' : item.status === 'In Progress' ? 'blue' : 'amber'}>{item.status}</Badge></td><td>{item.date}</td><td><MoreHorizontal size={18} /></td></tr>)}</tbody></table></div></section><section className="smart-classification"><div><span className="spark"><Sparkles size={17} /></span><div><Badge tone="dark">SMART CLASSIFICATION</Badge><h2>“AC in my room is not working”</h2><p>Mock result: Maintenance · High priority.</p></div></div><small><Sparkles size={13} /> AI classification will be connected later.</small></section>{open && <Modal title="Create a complaint" close={() => setOpen(false)}><label>Category<select><option>Maintenance</option><option>Mess</option><option>Internet</option><option>Electrical</option><option>Plumbing</option><option>Other</option></select></label><label>Subject<input placeholder="What needs attention?" /></label><label>Description<textarea placeholder="Add helpful details..." /></label><label>Priority<select><option>Medium</option><option>High</option><option>Low</option></select></label><Button onClick={() => setOpen(false)}>Submit complaint <ArrowRight size={15} /></Button></Modal>}</> }
 function AttendancePage() {
   const [summary, setSummary] = useState<AttendanceSummary | null>(null)
