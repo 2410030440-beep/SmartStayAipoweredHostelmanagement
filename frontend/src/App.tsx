@@ -361,16 +361,15 @@ function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
 function AdminHome() {
   const [studentCount, setStudentCount] = useState<number | null>(null)
   const [roomCount, setRoomCount] = useState<number | null>(null)
-  const [pendingComplaints, setPendingComplaints] = useState<Complaint[]>([])
+  const [complaintCount, setComplaintCount] = useState<number | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([studentService.list(), roomService.list(), complaintService.getAll()])
-      .then(([students, roomsList, complaintsList]) => {
+    Promise.all([studentService.list(), roomService.list()])
+      .then(([students, roomsList]) => {
         if (!cancelled) {
           setStudentCount(students.length)
           setRoomCount(roomsList.length)
-          setPendingComplaints(complaintsList.filter((item) => item.status === 'OPEN' || item.status === 'IN_PROGRESS').slice(0, 4))
         }
       })
       .catch(() => {})
@@ -378,23 +377,24 @@ function AdminHome() {
   }, [])
 
   return <>
-    <div className="dashboard-welcome"><div><span className="eyebrow">WARDEN OVERVIEW</span><h1>Good morning, Rhea <span>👋</span></h1><p>Your operational snapshot across students, rooms and requests.</p></div><div className="welcome-actions"><button className="quick-action secondary" onClick={() => window.location.assign('/admin/rooms')}><BedDouble size={16} /> Manage rooms</button><button className="quick-action primary" onClick={() => window.location.assign('/admin/announcements')}><Plus size={16} /> New announcement</button></div></div>
-    <div className="stats-grid admin-stat-grid">
-      <StatCard label="Students" value={studentCount === null ? '—' : String(studentCount)} note="Student records" tone="blue" icon={Users} />
-      <StatCard label="Rooms" value={roomCount === null ? '—' : String(roomCount)} note="Managed rooms" tone="soft" icon={BedDouble} />
-      <StatCard label="Open complaints" value={pendingComplaints.length === 0 && studentCount === null ? '—' : String(pendingComplaints.length)} note="Needs attention" tone="indigo" icon={MessageSquare} />
-      <StatCard label="Notifications" value="3" note="Unread updates" tone="mint" icon={Bell} />
+    <div className="dash-welcome-v5"><div><span className="eyebrow">WARDEN OVERVIEW</span><h1>Good morning, Warden <span>👋</span></h1><p>A clear operational view of your students, rooms and daily hostel activity.</p></div><div className="dash-actions-v5"><button className="dash-btn-secondary" onClick={() => window.location.assign('/admin/rooms')}><BedDouble size={15}/> Rooms</button><button className="dash-btn-primary" onClick={() => window.location.assign('/admin/complaints')}><MessageSquare size={15}/> Complaints</button></div></div>
+    <div className="dash-kpi-grid-v5">
+      <div className="dash-kpi-v5"><span>STUDENTS</span><strong>{studentCount === null ? '—' : String(studentCount)}</strong><small>Student records</small></div>
+      <div className="dash-kpi-v5"><span>ROOMS</span><strong>{roomCount === null ? '—' : String(roomCount)}</strong><small>Managed hostel rooms</small></div>
+      <div className="dash-kpi-v5"><span>ATTENDANCE</span><strong>Live</strong><small>Open attendance workspace</small></div>
+      <div className="dash-kpi-v5"><span>SMART AI</span><strong>Ready</strong><small>Intelligence layer foundation</small></div>
     </div>
-    <div className="admin-dashboard-grid">
-      <section className="panel occupancy-card-v2"><div className="panel-heading"><div><span className="eyebrow">CAPACITY</span><h2>Room overview</h2></div><Link to="/admin/rooms">Open room management <ArrowRight size={15} /></Link></div><div className="admin-room-summary"><div className="admin-room-summary-icon"><BedDouble size={25} /></div><div><strong>{roomCount === null ? 'Loading…' : String(roomCount) + ' rooms'}</strong><span>Manage capacity, occupancy and allocations from the Rooms workspace.</span></div><Link className="soft-link" to="/admin/rooms">Manage rooms <ArrowRight size={15} /></Link></div></section>
-      <section className="panel admin-attention-card"><div className="panel-heading"><div><span className="eyebrow">NEEDS ATTENTION</span><h2>Recent complaints</h2></div><Link to="/admin/complaints">View all <ArrowRight size={15} /></Link></div>{pendingComplaints.length === 0 ? <div className="dashboard-empty"><Check size={20} /><strong>Nothing urgent right now</strong><span>Open or in-progress complaints will appear here.</span></div> : <div className="request-list-v2">{pendingComplaints.map((item) => <div className="request-row-v2" key={item.id}><span className="request-icon"><AlertCircle size={15} /></span><div><strong>{item.complaint_number} · {item.title}</strong><small>{item.category} · {item.priority}</small></div><Badge tone={item.priority === 'URGENT' || item.priority === 'HIGH' ? 'coral' : item.status === 'IN_PROGRESS' ? 'blue' : 'amber'}>{item.status.replace('_', ' ')}</Badge></div>)}</div>}</section>
+    <div className="dash-grid-v5 top-v5">
+      <section className="dash-card-v5"><div className="dash-head-v5"><div><span>ROOM OPERATIONS</span><h2>Hostel spaces</h2></div><Link to="/admin/rooms">Open rooms <ArrowRight size={13}/></Link></div><div className="admin-space-v5"><span><BedDouble size={23}/></span><div><strong>{roomCount === null ? 'Loading rooms…' : String(roomCount) + ' rooms managed'}</strong><small>Inspect capacity, occupancy and student allocations from the Rooms workspace.</small></div></div><Link className="dash-link-v5" to="/admin/rooms">Manage rooms <ArrowRight size={13}/></Link></section>
+      <section className="dash-card-v5"><div className="dash-head-v5"><div><span>COMMON ACTIONS</span><h2>Operations hub</h2></div><Activity size={15}/></div><div className="shortcut-list-v5"><button onClick={() => window.location.assign('/admin/students')}><span><Users size={15}/></span><strong>Students</strong><ArrowRight size={13}/></button><button onClick={() => window.location.assign('/admin/attendance')}><span><ClipboardCheck size={15}/></span><strong>Attendance</strong><ArrowRight size={13}/></button><button onClick={() => window.location.assign('/admin/complaints')}><span><MessageSquare size={15}/></span><strong>Complaints</strong><ArrowRight size={13}/></button><button onClick={() => window.location.assign('/admin/leave')}><span><CalendarDays size={15}/></span><strong>Leave requests</strong><ArrowRight size={13}/></button></div></section>
     </div>
-    <div className="admin-dashboard-grid lower-admin">
-      <section className="panel admin-operations-card"><div className="panel-heading"><div><span className="eyebrow">OPERATIONS HUB</span><h2>Common actions</h2></div><Activity size={17} /></div><div className="admin-action-grid">{[['Students', Users, '/admin/students'], ['Rooms', BedDouble, '/admin/rooms'], ['Attendance', ClipboardCheck, '/admin/attendance'], ['Complaints', MessageSquare, '/admin/complaints'], ['Leave', CalendarDays, '/admin/leave'], ['Visitors', Users, '/admin/visitors']].map(([label, Icon, path]) => { const ActionIcon = Icon as typeof Activity; return <button className="admin-action-card" key={String(label)} onClick={() => window.location.assign(String(path))}><span><ActionIcon size={16} /></span><div><strong>{String(label)}</strong><small>Open workspace</small></div><ArrowRight size={14} /></button> })}</div></section>
-      <section className="panel admin-ai-card"><div className="ai-card-head"><span><Sparkles size={18} /></span><div><span className="eyebrow">AI-READY</span><h2>SmartStay intelligence</h2></div></div><p>The core workspace is being connected first. Complaint classification, predictive maintenance and occupancy insights can plug into this layer without changing your workflow.</p><div className="ai-feature-row"><span>01</span><strong>Complaint classification</strong></div><div className="ai-feature-row"><span>02</span><strong>Predictive maintenance</strong></div><div className="ai-feature-row"><span>03</span><strong>Occupancy forecasting</strong></div></section>
+    <div className="dash-grid-v5 bottom-v5">
+      <section className="dash-card-v5"><div className="dash-head-v5"><div><span>HOSTEL OPERATIONS</span><h2>Keep everything visible</h2></div><Sparkles size={15}/></div><div className="admin-tile-grid-v5"><div><span><Users size={15}/></span><strong>Students</strong><small>Profiles & records</small></div><div><span><BedDouble size={15}/></span><strong>Rooms</strong><small>Capacity & allocations</small></div><div><span><ClipboardCheck size={15}/></span><strong>Attendance</strong><small>Daily records</small></div><div><span><Bell size={15}/></span><strong>Announcements</strong><small>Campus updates</small></div></div></section>
+      <section className="dash-card-v5 ai-card-v5"><div className="dash-head-v5"><div><span>SMART AI</span><h2>Built for smarter decisions</h2></div><Sparkles size={15}/></div><p>Complaint classification, predictive maintenance, attendance risk and occupancy forecasting can plug into this workspace as the AI layer is developed.</p><div className="ai-list-v5"><span><b>01</b> Complaint classification</span><span><b>02</b> Predictive maintenance</span><span><b>03</b> Occupancy forecasting</span></div></section>
     </div>
   </>
 }
+
 
 function Modal({ title, close, children }: { title: string; close: () => void; children: React.ReactNode }) { return <div className="modal-backdrop" onMouseDown={close}><div className="modal" onMouseDown={(e) => e.stopPropagation()}><div className="modal-head"><h2>{title}</h2><button onClick={close}><X size={18} /></button></div>{children}</div></div> }
 
