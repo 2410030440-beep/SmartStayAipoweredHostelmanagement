@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertCircle, ArrowRight, BedDouble, Bell, Building2, CalendarDays, Check, ClipboardCheck, DoorOpen, FileText, Home, LayoutDashboard, Menu, MessageSquare, MoreHorizontal, Plus, Search, Settings, ShieldCheck, Sparkles, Stethoscope, UserRound, Users, Utensils, WalletCards, X } from 'lucide-react'
 import { announcements, complaints, leaveRequests, maintenance, menu, rooms, stats, visitors, type Role } from './data'
-import { attendanceService, complaintService, getCurrentUser, loginUser, logoutUser, studentDashboardService, type AttendanceRecord, type AttendanceSummary, type Complaint, type ComplaintCategory, type ComplaintPriority, type ComplaintStatus, type Student } from './services'
+import { attendanceService, complaintService, getCurrentUser, loginUser, logoutUser, roomService, studentDashboardService, studentService, type AttendanceRecord, type AttendanceSummary, type Complaint, type ComplaintCategory, type ComplaintPriority, type ComplaintStatus, type Student } from './services'
 import StudentManagement from './StudentManagement'
 import RoomManagement from './RoomManagement'
 import Signup from './Signup.tsx'
@@ -136,97 +136,37 @@ function Dashboard({ role }: { role: Role }) {
     return () => { cancelled = true }
   }, [])
 
-  const groupedPages = role === 'student'
+  const groups = role === 'student'
     ? [
         { label: 'Overview', items: pages.slice(0, 1) },
         { label: 'My stay', items: pages.slice(1, 5) },
-        { label: 'Requests & services', items: pages.slice(5, 9) },
+        { label: 'Services', items: pages.slice(5, 9) },
         { label: 'Finance & updates', items: pages.slice(9) },
       ]
     : [
         { label: 'Overview', items: pages.slice(0, 1) },
         { label: 'People & spaces', items: pages.slice(1, 4) },
         { label: 'Operations', items: pages.slice(4, 10) },
-        { label: 'Insights & system', items: pages.slice(10) },
+        { label: 'Finance & communication', items: pages.slice(10, 12) },
+        { label: 'Insights', items: pages.slice(12) },
       ]
 
   return <div className="app-shell">
     <div className={open ? 'mobile-scrim show' : 'mobile-scrim'} onClick={() => setOpen(false)} />
     <aside className={open ? 'sidebar open' : 'sidebar'}>
-      <div className="side-brand">
-        <Link className="brand" to="/">
-          <span className="brand-mark"><Building2 size={17} /></span>
-          smart<span>stay</span>
-        </Link>
-        <button className="close-mobile" onClick={() => setOpen(false)} aria-label="Close navigation"><X /></button>
-      </div>
-
-      <div className="workspace-switcher">
-        <span className="workspace-icon">{role === 'student' ? <UserRound size={15} /> : <ShieldCheck size={15} />}</span>
-        <span><small>{role === 'student' ? 'Personal space' : 'Operations space'}</small><strong>{role === 'student' ? 'Student workspace' : 'Warden workspace'}</strong></span>
-        <MoreHorizontal size={15} />
-      </div>
-
+      <div className="side-brand"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link><button className="close-mobile" onClick={() => setOpen(false)} aria-label="Close navigation"><X /></button></div>
+      <div className="workspace-switcher"><span className="workspace-icon">{role === 'student' ? <UserRound size={16} /> : <ShieldCheck size={16} />}</span><span><small>{role === 'student' ? 'PERSONAL SPACE' : 'OPERATIONS SPACE'}</small><strong>{role === 'student' ? 'Student workspace' : 'Warden workspace'}</strong></span><span className="workspace-status-dot" /></div>
       <nav className="side-nav side-nav-grouped">
-        {groupedPages.map((group) => <div className="nav-group" key={group.label}>
-          <span className="nav-group-label">{group.label}</span>
-          {group.items.map(({ label, icon: Icon, path }) =>
-            <NavLink
-              onClick={() => setOpen(false)}
-              className={({ isActive }) => isActive ? 'active' : ''}
-              to={path}
-              key={path}
-              end={path === '/student' || path === '/admin'}
-            >
-              <span className="nav-icon"><Icon size={17} /></span>
-              <span>{label}</span>
-              {label === 'Notifications' && <span className="nav-count">3</span>}
-            </NavLink>
-          )}
-        </div>)}
+        {groups.map((group) => <div className="nav-group" key={group.label}><span className="nav-group-label">{group.label}</span>{group.items.map(({ label, icon: Icon, path }) => <NavLink onClick={() => setOpen(false)} className={({ isActive }) => isActive ? 'active' : ''} to={path} key={path} end={path === '/student' || path === '/admin'}><span className="nav-icon"><Icon size={17} /></span><span>{label}</span>{label === 'Notifications' && <span className="nav-count">3</span>}</NavLink>)}</div>)}
       </nav>
-
       <div className="side-bottom">
-        <div className="help-card premium-help">
-          <span className="help-icon"><Sparkles size={16} /></span>
-          <div><strong>SmartStay assistant</strong><small>AI insights are coming to your workspace.</small></div>
-        </div>
-        <div className="profile-mini">
-          <span className="avatar">{initials}</span>
-          <span className="profile-mini-copy">
-            <strong>{currentUser?.name ?? (role === 'student' ? 'Student' : 'Administrator')}</strong>
-            <small>{currentUser?.email ?? (role === 'student' ? 'Student account' : 'Administrator account')}</small>
-          </span>
-          <button className="profile-menu" aria-label="Account options"><MoreHorizontal size={17} /></button>
-        </div>
+        <div className="help-card premium-help"><span className="help-icon"><Sparkles size={16} /></span><div><strong>SmartStay AI</strong><small>Insights will appear here as the AI layer grows.</small></div></div>
+        <div className="profile-mini"><span className="avatar">{initials}</span><span className="profile-mini-copy"><strong>{currentUser?.name ?? (role === 'student' ? 'Student' : 'Administrator')}</strong><small>{currentUser?.email ?? (role === 'student' ? 'Student account' : 'Admin account')}</small></span><button className="profile-menu" aria-label="Account menu"><MoreHorizontal size={17} /></button></div>
       </div>
     </aside>
-
     <div className="main-shell">
-      <header className="app-header">
-        <div className="header-left">
-          <button className="menu-button" onClick={() => setOpen(true)} aria-label="Open navigation"><Menu /></button>
-          <div className="breadcrumb">
-            <span>{role === 'student' ? 'Student workspace' : 'Warden workspace'}</span>
-            <ArrowRight size={13} />
-            <strong>{current.label}</strong>
-          </div>
-        </div>
-        <div className="header-actions">
-          <SearchInput placeholder="Search SmartStay..." />
-          <button className="icon-button header-notification" aria-label="Notifications" onClick={() => location.pathname.startsWith('/student') ? window.location.assign('/student/notifications') : window.location.assign('/admin/notifications')}>
-            <Bell size={18} /><i />
-          </button>
-          <div className="header-avatar" title={currentUser?.name ?? ''}>{initials}</div>
-        </div>
-      </header>
-
-      <main className="dashboard-main">
-        <Routes>
-          <Route index element={role === 'student' ? <StudentHome /> : <AdminHome />} />
-          <Route path="*" element={role === 'student' ? <StudentPage path={location.pathname} /> : <AdminPage path={location.pathname} />} />
-        </Routes>
-      </main>
+      <header className="app-header"><div className="header-left"><button className="menu-button" onClick={() => setOpen(true)} aria-label="Open navigation"><Menu /></button><div className="breadcrumb"><span>{role === 'student' ? 'Student workspace' : 'Warden workspace'}</span><ArrowRight size={13} /><strong>{current.label}</strong></div></div><div className="header-actions"><SearchInput placeholder="Search SmartStay..." /><button className="icon-button header-notification" aria-label="Notifications" onClick={() => location.pathname.startsWith('/student') ? window.location.assign('/student/notifications') : window.location.assign('/admin/notifications')}><Bell size={18} /><i /></button><div className="header-avatar" title={currentUser?.name ?? ''}>{initials}</div></div></header>
+      <main className="dashboard-main"><Routes><Route index element={role === 'student' ? <StudentHome /> : <AdminHome />} /><Route path="*" element={role === 'student' ? <StudentPage path={location.pathname} /> : <AdminPage path={location.pathname} />} /></Routes></main>
     </div>
   </div>
 }
@@ -237,133 +177,48 @@ function StudentHome() {
   const navigate = useNavigate()
   const [profile, setProfile] = useState<Student | null>(null)
   const [attendance, setAttendance] = useState<AttendanceSummary | null>(null)
+  const [recentComplaints, setRecentComplaints] = useState<Complaint[]>([])
   const [error, setError] = useState('')
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([studentDashboardService.getProfile(), attendanceService.getOverview()])
-      .then(([studentProfile, attendanceSummary]) => {
-        if (!cancelled) {
-          setProfile(studentProfile)
-          setAttendance(attendanceSummary)
-        }
+    Promise.all([studentDashboardService.getProfile(), attendanceService.getOverview(), complaintService.getMy()])
+      .then(([studentProfile, attendanceSummary, complaintRecords]) => {
+        if (!cancelled) { setProfile(studentProfile); setAttendance(attendanceSummary); setRecentComplaints(complaintRecords.slice(0, 3)) }
       })
-      .catch((requestError) => {
-        if (!cancelled) setError(requestError instanceof Error ? requestError.message : 'Unable to load your dashboard.')
-      })
+      .catch((requestError) => { if (!cancelled) setError(requestError instanceof Error ? requestError.message : 'Unable to load your dashboard.') })
     return () => { cancelled = true }
   }, [])
 
   const displayName = profile?.full_name ?? 'Student'
+  const firstName = displayName.split(' ')[0]
   const roomLabel = profile?.room_number ?? 'Not allocated'
-  const attendanceValue = attendance ? `${attendance.attendance_percentage}%` : '—'
+  const attendanceValue = attendance ? String(attendance.attendance_percentage) + '%' : '—'
   const presentValue = attendance?.present_days ?? 0
   const absentValue = attendance?.absent_days ?? 0
   const totalValue = attendance?.total_days ?? 0
   const presentWidth = attendance && attendance.total_days > 0 ? (attendance.present_days / attendance.total_days) * 100 : 0
+  const openRequests = recentComplaints.filter((item) => item.status === 'OPEN' || item.status === 'IN_PROGRESS').length
+  const complaintTone = (statusValue: ComplaintStatus) => statusValue === 'RESOLVED' || statusValue === 'CLOSED' ? 'mint' : statusValue === 'IN_PROGRESS' ? 'blue' : 'amber'
 
   return <>
-    <div className="dashboard-welcome">
-      <div>
-        <span className="eyebrow">MONDAY · SMARTSTAY</span>
-        <h1>Good morning, {displayName.split(' ')[0]} <span>👋</span></h1>
-        <p>A clear snapshot of your hostel life, requests and daily essentials.</p>
-      </div>
-      <div className="welcome-actions">
-        <button className="quick-action secondary" onClick={() => navigate('/student/attendance')}><ClipboardCheck size={16} /> Attendance</button>
-        <button className="quick-action primary" onClick={() => navigate('/student/complaints')}><Plus size={16} /> New request</button>
-      </div>
-    </div>
-
+    <div className="dashboard-welcome"><div><span className="eyebrow">STUDENT OVERVIEW</span><h1>Good morning, {firstName} <span>👋</span></h1><p>Your hostel essentials, requests and updates — all in one place.</p></div><div className="welcome-actions"><button className="quick-action secondary" onClick={() => navigate('/student/attendance')}><ClipboardCheck size={16} /> View attendance</button><button className="quick-action primary" onClick={() => navigate('/student/complaints')}><Plus size={16} /> New request</button></div></div>
     {error && <div className="dashboard-alert"><AlertCircle size={17} /><span>{error}</span></div>}
-
     <div className="stats-grid student-stat-grid">
-      <StatCard label="Attendance" value={attendanceValue} note={attendance ? `${presentValue} present of ${totalValue} recorded days` : 'Loading your attendance'} tone="mint" icon={ClipboardCheck} />
-      <StatCard label="Room" value={roomLabel} note={profile ? profile.status.replace('_', ' ') : 'Loading room status'} tone="coral" icon={BedDouble} />
-      <StatCard label="Course" value={profile?.course ?? '—'} note={profile?.year ?? 'Loading academic details'} tone="blue" icon={FileText} />
-      <StatCard label="Student ID" value={profile?.student_id ?? '—'} note={profile?.email ?? 'Loading profile'} tone="amber" icon={UserRound} />
+      <StatCard label="Attendance" value={attendanceValue} note={attendance ? presentValue + ' present of ' + totalValue + ' recorded days' : 'Loading'} tone="mint" icon={ClipboardCheck} />
+      <StatCard label="My room" value={roomLabel} note={profile?.room_number ? 'Active allocation' : 'Awaiting allocation'} tone="blue" icon={BedDouble} />
+      <StatCard label="Open requests" value={String(openRequests)} note={recentComplaints.length ? 'Based on your complaint activity' : 'No complaint activity yet'} tone="indigo" icon={MessageSquare} />
+      <StatCard label="Status" value={profile?.status?.replace('_', ' ') ?? 'Loading'} note={profile?.year ?? 'Student account'} tone="soft" icon={ShieldCheck} />
     </div>
-
-    <div className="dashboard-grid hero-dashboard-grid">
-      <section className="panel room-card student-room-card">
-        <div className="room-top">
-          <div>
-            <div className="eyebrow light">YOUR ROOM</div>
-            <h2>{roomLabel}</h2>
-            <p>{profile ? `${profile.gender} · ${profile.status.replace('_', ' ')} · SmartStay residence` : 'Loading room information'}</p>
-          </div>
-          <span className="room-illustration"><BedDouble size={31} /></span>
-        </div>
-        <div className="room-occupancy-pill"><span><i className="dot mint" /> Current allocation</span><strong>{profile?.room_number ? 'Active' : 'Pending'}</strong></div>
-        <div className="room-detail-mini-grid">
-          <div><span>Student ID</span><strong>{profile?.student_id ?? '—'}</strong></div>
-          <div><span>Phone</span><strong>{profile?.phone ?? '—'}</strong></div>
-        </div>
-        <Link className="panel-link light-link" to="/student/room">View room details <ArrowRight size={15} /></Link>
-      </section>
-
-      <section className="panel announcements">
-        <div className="panel-heading">
-          <div><span className="eyebrow">KEEP IN THE LOOP</span><h2>Campus updates</h2></div>
-          <Link to="/student/notifications">View all <ArrowRight size={15} /></Link>
-        </div>
-        <div className="announcement-list">
-          {announcements.slice(0, 3).map((item) => <div className="announcement" key={item.title}>
-            <span className="announcement-icon"><Bell size={16} /></span>
-            <div>
-              <div className="item-meta"><Badge tone={item.tag === 'Maintenance' ? 'amber' : 'soft'}>{item.tag}</Badge><span>{item.date}</span></div>
-              <strong>{item.title}</strong>
-              <p>{item.body}</p>
-            </div>
-          </div>)}
-        </div>
-      </section>
+    <div className="student-dashboard-grid top-grid">
+      <section className="panel attendance-card"><div className="panel-heading"><div><span className="eyebrow">ACADEMIC PULSE</span><h2>Attendance overview</h2></div><Link to="/student/attendance">View records <ArrowRight size={15} /></Link></div><div className="attendance-main"><div className="attendance-score"><strong>{attendanceValue}</strong><span>overall attendance</span><small>{presentValue} present · {absentValue} absent</small></div><div className="attendance-bars"><div><span><b>Present</b><strong>{presentValue} days</strong></span><i><b style={{ width: presentWidth + '%' }} /></i></div><div><span><b>Absent</b><strong>{absentValue} days</strong></span><i className="bar-muted"><b style={{ width: (totalValue ? (absentValue / totalValue) * 100 : 0) + '%' }} /></i></div></div></div></section>
+      <section className="panel room-overview-card"><div className="panel-heading"><div><span className="eyebrow">MY ROOM</span><h2>{roomLabel}</h2></div><span className="room-icon-soft"><BedDouble size={22} /></span></div><div className="room-overview-meta"><span>Allocation</span><strong>{profile?.room_number ? 'Active' : 'Pending'}</strong></div><div className="room-facts"><div><small>Student ID</small><strong>{profile?.student_id ?? '—'}</strong></div><div><small>Phone</small><strong>{profile?.phone ?? 'Not provided'}</strong></div></div><Link className="soft-link" to="/student/room">View room details <ArrowRight size={15} /></Link></section>
     </div>
-
-    <div className="dashboard-grid lower">
-      <section className="panel attendance-panel">
-        <div className="panel-heading">
-          <div><span className="eyebrow">ACADEMIC PULSE</span><h2>Attendance overview</h2></div>
-          <Link to="/student/attendance">Open records <ArrowRight size={15} /></Link>
-        </div>
-        <div className="attendance-pulse">
-          <div className="big-ring"><strong>{attendanceValue}</strong><small>overall</small></div>
-          <div className="pulse-bars">
-            <div><span>Present</span><strong>{presentValue} days</strong><i><b style={{ width: `${presentWidth}%` }} /></i></div>
-            <div><span>Absent</span><strong>{absentValue} days</strong><i><b className="coral-fill" style={{ width: `${totalValue ? (absentValue / totalValue) * 100 : 0}%` }} /></i></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="panel profile-summary-panel">
-        <div className="panel-heading">
-          <div><span className="eyebrow">YOUR PROFILE</span><h2>Account snapshot</h2></div>
-          <Link to="/student/profile">View profile <ArrowRight size={15} /></Link>
-        </div>
-        <div className="profile-summary">
-          <span className="profile-summary-avatar">{displayName.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase()}</span>
-          <div><strong>{displayName}</strong><span>{profile?.course ?? 'Course'} · {profile?.year ?? 'Year'}</span><small>{profile?.email ?? 'Loading email'}</small></div>
-        </div>
-        <div className="profile-chip-row"><Badge tone="soft">{profile?.status ?? 'Loading'}</Badge>{profile?.room_number && <Badge tone="mint">Room allocated</Badge>}</div>
-        <div className="mini-actions">
-          <button onClick={() => navigate('/student/profile')}><UserRound size={15} /> Profile</button>
-          <button onClick={() => navigate('/student/record')}><FileText size={15} /> My record</button>
-        </div>
-      </section>
+    <div className="student-dashboard-grid lower-grid">
+      <section className="panel requests-card"><div className="panel-heading"><div><span className="eyebrow">REQUESTS</span><h2>Recent requests</h2></div><Link to="/student/complaints">View all <ArrowRight size={15} /></Link></div>{recentComplaints.length === 0 ? <div className="dashboard-empty"><MessageSquare size={21} /><strong>No requests yet</strong><span>Raise a complaint and it will appear here.</span><button className="text-button-blue" onClick={() => navigate('/student/complaints')}>Create request</button></div> : <div className="request-list-v2">{recentComplaints.map((item) => <div className="request-row-v2" key={item.id}><span className="request-icon"><MessageSquare size={15} /></span><div><strong>{item.complaint_number} · {item.title}</strong><small>{item.category} · {new Date(item.created_at).toLocaleDateString()}</small></div><Badge tone={complaintTone(item.status)}>{item.status.replace('_', ' ')}</Badge></div>)}</div>}</section>
+      <section className="panel updates-card"><div className="panel-heading"><div><span className="eyebrow">CAMPUS UPDATES</span><h2>What’s happening</h2></div><Link to="/student/notifications">View all <ArrowRight size={15} /></Link></div><div className="updates-list">{announcements.slice(0, 3).map((item) => <div className="update-row-v2" key={item.title}><span className="update-icon"><Bell size={15} /></span><div><div><strong>{item.title}</strong><Badge tone={item.tag === 'Maintenance' ? 'amber' : 'soft'}>{item.tag}</Badge></div><small>{item.body}</small><em>{item.date}</em></div></div>)}</div></section>
     </div>
-
-    <section className="panel quick-links-panel">
-      <div className="panel-heading"><div><span className="eyebrow">SHORTCUTS</span><h2>Get things done</h2></div><Sparkles size={18} className="section-icon" /></div>
-      <div className="quick-links-grid">
-        {[['Complaints', MessageSquare, '/student/complaints', 'Report an issue'], ['Leave request', CalendarDays, '/student/leave', 'Plan time away'], ['Visitors', Users, '/student/visitors', 'Register a guest'], ['Payments', WalletCards, '/student/payments', 'View your fees']].map(([label, Icon, path, copy]) => {
-          const QuickIcon = Icon as typeof Activity
-          return <button className="quick-link-card" key={String(label)} onClick={() => navigate(String(path))}>
-            <span className="quick-link-icon"><QuickIcon size={17} /></span>
-            <span><strong>{String(label)}</strong><small>{String(copy)}</small></span><ArrowRight size={15} />
-          </button>
-        })}
-      </div>
-    </section>
+    <section className="panel quick-links-panel"><div className="panel-heading"><div><span className="eyebrow">SHORTCUTS</span><h2>Get things done</h2></div><span className="section-icon"><Sparkles size={17} /></span></div><div className="quick-links-grid">{[['Complaints', MessageSquare, '/student/complaints', 'Report an issue'], ['Leave request', CalendarDays, '/student/leave', 'Plan time away'], ['Visitors', Users, '/student/visitors', 'Register a guest'], ['Payments', WalletCards, '/student/payments', 'View fees and transactions']].map(([label, Icon, path, copy]) => { const QuickIcon = Icon as typeof Activity; return <button className="quick-link-card" key={String(label)} onClick={() => navigate(String(path))}><span className="quick-link-icon"><QuickIcon size={17} /></span><span><strong>{String(label)}</strong><small>{String(copy)}</small></span><ArrowRight size={15} /></button> })}</div></section>
   </>
 }
 
@@ -517,7 +372,44 @@ function AdminPage({ path }: { path: string }) {
 }
 
 function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) { return <div className="table-wrap"><table><thead><tr>{headers.map((h) => <th key={h}>{h}</th>)}</tr></thead><tbody>{rows.map((row, i) => <tr key={i}>{row.map((cell, j) => <td key={cell}>{j === 0 ? <strong>{cell}</strong> : j === row.length - 1 ? <Badge tone={cell === 'Active' || cell === 'Occupied' || cell === 'Resolved' || cell === 'Healthy' ? 'mint' : 'amber'}>{cell}</Badge> : cell}</td>)}</tr>)}</tbody></table></div> }
-function AdminHome() { return <><PageHeader eyebrow="MONDAY, SEPTEMBER 14, 2026" title="Good morning, Rhea." copy="Here’s the operational pulse across your hostels." action={<Button><Plus size={17} /> New announcement</Button>} /><div className="stats-grid">{stats.admin.map((item, i) => <StatCard key={item.label} {...item} icon={[Users, BedDouble, MessageSquare, CalendarDays][i]} />)}</div><div className="dashboard-grid"><section className="panel occupancy-panel"><div className="panel-heading"><div><span className="eyebrow">CAPACITY SNAPSHOT</span><h2>Room occupancy</h2></div><Link to="/admin/rooms">Manage rooms <ArrowRight size={15} /></Link></div><div className="occupancy-main"><div className="admin-ring"><strong>82%</strong><small>occupied</small></div><div className="legend"><span><i className="dot mint" />Occupied <strong>386</strong></span><span><i className="dot blue" />Available <strong>68</strong></span><span><i className="dot coral" />Maintenance <strong>14</strong></span></div></div></section><section className="panel"><div className="panel-heading"><div><span className="eyebrow">NEEDS ATTENTION</span><h2>Latest complaints</h2></div><Link to="/admin/complaints">View all <ArrowRight size={15} /></Link></div>{complaints.slice(0, 3).map((x) => <div className="compact-issue" key={x.id}><span className="issue-icon amber-bg"><AlertCircle size={16} /></span><div><strong>{x.subject}</strong><small>{x.id} · {x.date}</small></div><Badge tone={x.status === 'Resolved' ? 'mint' : 'amber'}>{x.status}</Badge></div>)}</section></div><div className="dashboard-grid lower"><section className="panel"><div className="panel-heading"><div><span className="eyebrow">OPERATIONS</span><h2>Complaint trend</h2></div></div><div className="bar-chart">{[42, 54, 48, 67, 59, 82].map((height, i) => <div key={i}><span style={{ height: `${height}%` }} /><small>{['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'][i]}</small></div>)}</div></section><section className="panel ai-panel"><div className="ai-head"><span className="spark"><Sparkles size={17} /></span><div><Badge tone="dark">DEMO AI INSIGHTS</Badge><h2>Signals worth a closer look.</h2></div></div><p>Block B has shown an increase in maintenance complaints this month.</p><p>Expected occupancy may increase next month.</p><small><Sparkles size={13} /> ML service will be connected later.</small></section></div></> }
+function AdminHome() {
+  const [studentCount, setStudentCount] = useState<number | null>(null)
+  const [roomCount, setRoomCount] = useState<number | null>(null)
+  const [pendingComplaints, setPendingComplaints] = useState<Complaint[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([studentService.list(), roomService.list(), complaintService.getAll()])
+      .then(([students, roomsList, complaintsList]) => {
+        if (!cancelled) {
+          setStudentCount(students.length)
+          setRoomCount(roomsList.length)
+          setPendingComplaints(complaintsList.filter((item) => item.status === 'OPEN' || item.status === 'IN_PROGRESS').slice(0, 4))
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  return <>
+    <div className="dashboard-welcome"><div><span className="eyebrow">WARDEN OVERVIEW</span><h1>Good morning, Rhea <span>👋</span></h1><p>Your operational snapshot across students, rooms and requests.</p></div><div className="welcome-actions"><button className="quick-action secondary" onClick={() => window.location.assign('/admin/rooms')}><BedDouble size={16} /> Manage rooms</button><button className="quick-action primary" onClick={() => window.location.assign('/admin/announcements')}><Plus size={16} /> New announcement</button></div></div>
+    <div className="stats-grid admin-stat-grid">
+      <StatCard label="Students" value={studentCount === null ? '—' : String(studentCount)} note="Student records" tone="blue" icon={Users} />
+      <StatCard label="Rooms" value={roomCount === null ? '—' : String(roomCount)} note="Managed rooms" tone="soft" icon={BedDouble} />
+      <StatCard label="Open complaints" value={pendingComplaints.length === 0 && studentCount === null ? '—' : String(pendingComplaints.length)} note="Needs attention" tone="indigo" icon={MessageSquare} />
+      <StatCard label="Notifications" value="3" note="Unread updates" tone="mint" icon={Bell} />
+    </div>
+    <div className="admin-dashboard-grid">
+      <section className="panel occupancy-card-v2"><div className="panel-heading"><div><span className="eyebrow">CAPACITY</span><h2>Room overview</h2></div><Link to="/admin/rooms">Open room management <ArrowRight size={15} /></Link></div><div className="admin-room-summary"><div className="admin-room-summary-icon"><BedDouble size={25} /></div><div><strong>{roomCount === null ? 'Loading…' : String(roomCount) + ' rooms'}</strong><span>Manage capacity, occupancy and allocations from the Rooms workspace.</span></div><Link className="soft-link" to="/admin/rooms">Manage rooms <ArrowRight size={15} /></Link></div></section>
+      <section className="panel admin-attention-card"><div className="panel-heading"><div><span className="eyebrow">NEEDS ATTENTION</span><h2>Recent complaints</h2></div><Link to="/admin/complaints">View all <ArrowRight size={15} /></Link></div>{pendingComplaints.length === 0 ? <div className="dashboard-empty"><Check size={20} /><strong>Nothing urgent right now</strong><span>Open or in-progress complaints will appear here.</span></div> : <div className="request-list-v2">{pendingComplaints.map((item) => <div className="request-row-v2" key={item.id}><span className="request-icon"><AlertCircle size={15} /></span><div><strong>{item.complaint_number} · {item.title}</strong><small>{item.category} · {item.priority}</small></div><Badge tone={item.priority === 'URGENT' || item.priority === 'HIGH' ? 'coral' : item.status === 'IN_PROGRESS' ? 'blue' : 'amber'}>{item.status.replace('_', ' ')}</Badge></div>)}</div>}</section>
+    </div>
+    <div className="admin-dashboard-grid lower-admin">
+      <section className="panel admin-operations-card"><div className="panel-heading"><div><span className="eyebrow">OPERATIONS HUB</span><h2>Common actions</h2></div><Activity size={17} /></div><div className="admin-action-grid">{[['Students', Users, '/admin/students'], ['Rooms', BedDouble, '/admin/rooms'], ['Attendance', ClipboardCheck, '/admin/attendance'], ['Complaints', MessageSquare, '/admin/complaints'], ['Leave', CalendarDays, '/admin/leave'], ['Visitors', Users, '/admin/visitors']].map(([label, Icon, path]) => { const ActionIcon = Icon as typeof Activity; return <button className="admin-action-card" key={String(label)} onClick={() => window.location.assign(String(path))}><span><ActionIcon size={16} /></span><div><strong>{String(label)}</strong><small>Open workspace</small></div><ArrowRight size={14} /></button> })}</div></section>
+      <section className="panel admin-ai-card"><div className="ai-card-head"><span><Sparkles size={18} /></span><div><span className="eyebrow">AI-READY</span><h2>SmartStay intelligence</h2></div></div><p>The core workspace is being connected first. Complaint classification, predictive maintenance and occupancy insights can plug into this layer without changing your workflow.</p><div className="ai-feature-row"><span>01</span><strong>Complaint classification</strong></div><div className="ai-feature-row"><span>02</span><strong>Predictive maintenance</strong></div><div className="ai-feature-row"><span>03</span><strong>Occupancy forecasting</strong></div></section>
+    </div>
+  </>
+}
+
 function Modal({ title, close, children }: { title: string; close: () => void; children: React.ReactNode }) { return <div className="modal-backdrop" onMouseDown={close}><div className="modal" onMouseDown={(e) => e.stopPropagation()}><div className="modal-head"><h2>{title}</h2><button onClick={close}><X size={18} /></button></div>{children}</div></div> }
 
 export default App
