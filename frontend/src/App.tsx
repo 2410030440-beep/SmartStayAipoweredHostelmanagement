@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertCircle, ArrowRight, BedDouble, Bell, Building2, CalendarDays, Check, ClipboardCheck, DoorOpen, FileText, Home, LayoutDashboard, Menu, MessageSquare, MoreHorizontal, Plus, Search, Settings, ShieldCheck, Sparkles, Stethoscope, UserRound, Users, Utensils, WalletCards, X } from 'lucide-react'
-import { announcements, complaints, leaveRequests, maintenance, menu, rooms, stats, student, visitors, type Role } from './data'
+import { announcements, complaints, leaveRequests, maintenance, menu, rooms, stats, visitors, type Role } from './data'
 import { attendanceService, complaintService, getCurrentUser, loginUser, logoutUser, studentDashboardService, type AttendanceRecord, type AttendanceSummary, type Complaint, type ComplaintCategory, type ComplaintPriority, type ComplaintStatus, type Student } from './services'
 import StudentManagement from './StudentManagement'
 import RoomManagement from './RoomManagement'
