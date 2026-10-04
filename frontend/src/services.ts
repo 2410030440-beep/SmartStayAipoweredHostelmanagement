@@ -1,6 +1,6 @@
 import { students } from './data'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
 const AUTH_TOKEN_KEY = 'smartstay_access_token'
 
 export type AuthRole = 'STUDENT' | 'ADMIN'
