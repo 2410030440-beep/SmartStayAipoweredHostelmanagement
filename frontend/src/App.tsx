@@ -36,7 +36,7 @@ function Landing() {
     <nav className="landing-nav landing-nav-v3">
       <Link className="brand landing-brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link>
       <div className="landing-links"><a href="#features">Platform</a><a href="#flow">Workflow</a><a href="#benefits">Why SmartStay</a></div>
-      <div className="nav-actions"><Link className="text-button" to="/login">Sign in</Link><Button onClick={() => navigate('/login')}>Get started <ArrowRight size={16} /></Button></div>
+      <div className="nav-actions"><Link className="text-button" to="/admin-login">Admin</Link><Link className="text-button" to="/login">Sign in</Link><Button onClick={() => navigate('/login')}>Get started <ArrowRight size={16} /></Button></div>
     </nav>
 
     <main>
