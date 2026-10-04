@@ -22,35 +22,45 @@ function AdminGate() { const navigate = useNavigate(); const [checking, setCheck
 
 function Landing() {
   const navigate = useNavigate()
-  return <div className="landing landing-v5">
-    <nav className="landing-nav landing-nav-v5">
+  return <div className="landing landing-photo-hero">
+    <nav className="landing-nav landing-photo-nav">
       <Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link>
       <div className="landing-links"><a href="#features">Platform</a><a href="#flow">How it works</a><a href="#benefits">Benefits</a></div>
       <div className="nav-actions"><Link className="text-button" to="/admin-login">Admin</Link><Link className="text-button" to="/login">Sign in</Link><Button onClick={() => navigate('/login')}>Get started <ArrowRight size={16} /></Button></div>
     </nav>
+
     <main>
-      <section className="hero-v5">
-        <div className="hero-v5-copy">
-          <span className="hero-v5-kicker"><i /> SMART HOSTEL MANAGEMENT</span>
+      <section className="photo-hero">
+        <img className="photo-hero-image" src="/smartstay-hero.webp" alt="Students relaxing and studying in a modern hostel common room" />
+        <div className="photo-hero-overlay" />
+        <div className="photo-hero-content">
+          <span className="photo-hero-kicker"><i /> AI-POWERED HOSTEL MANAGEMENT</span>
           <h1>Smarter hostel management.<br /><em>Better everyday living.</em></h1>
-          <p>Rooms, attendance, complaints, leave, visitors and payments — connected in one intelligent workspace for students and wardens.</p>
-          <div className="hero-v5-actions"><Button onClick={() => navigate('/login')}>Explore SmartStay <ArrowRight size={16} /></Button><Link to="/signup">Create student account</Link></div>
-          <div className="hero-v5-checks"><span><Check size={14} /> Centralized records</span><span><Check size={14} /> Faster requests</span><span><Check size={14} /> AI-ready foundation</span></div>
-        </div>
-        <div className="hero-v5-side">
-          <div className="hero-v5-card">
-            <div className="hero-v5-card-head"><div><span>SMARTSTAY AI</span><strong>Hostel at a glance</strong></div><span className="hero-v5-spark"><Sparkles size={17} /></span></div>
-            <div className="hero-v5-metrics"><div><small>Students</small><strong>1,248</strong><span>Active records</span></div><div><small>Rooms</small><strong>412</strong><span>Managed spaces</span></div><div><small>Requests</small><strong>24</strong><span>Needs attention</span></div></div>
-            <div className="hero-v5-list"><div><span><BedDouble size={15} /></span><div><strong>Rooms & allocations</strong><small>Know every bed and vacancy.</small></div><ArrowRight size={14} /></div><div><span><MessageSquare size={15} /></span><div><strong>Complaint management</strong><small>Track every issue to resolution.</small></div><ArrowRight size={14} /></div><div><span><ClipboardCheck size={15} /></span><div><strong>Attendance visibility</strong><small>Keep daily records in one view.</small></div><ArrowRight size={14} /></div></div>
-            <div className="hero-v5-ai"><Sparkles size={15} /><div><strong>Built for smarter hostel decisions</strong><small>AI features can be layered on as the platform grows.</small></div></div>
-          </div>
+          <p>One connected workspace for rooms, attendance, complaints, leave, visitors and payments — built for students and hostel teams.</p>
+          <div className="photo-hero-actions"><Button onClick={() => navigate('/login')}>Explore SmartStay <ArrowRight size={16} /></Button><Link to="/signup">Create student account</Link></div>
+          <div className="photo-hero-trust"><span><Check size={14} /> Centralized records</span><span><Check size={14} /> Faster requests</span><span><Check size={14} /> AI-ready foundation</span></div>
         </div>
       </section>
-      <section id="features" className="section landing-section-v5"><div className="section-heading-v5"><span>SMARTSTAY PLATFORM</span><h2>Everything important,<br /><em>in one connected workflow.</em></h2><p>Simple tools for the routines that matter most to students and hostel teams.</p></div><div className="feature-grid feature-grid-v5">{[[Building2,'Rooms & allocations','Capacity, occupancy and student allocation.'],[ClipboardCheck,'Attendance','Clear daily records and history.'],[MessageSquare,'Complaints','Track issues through a visible status flow.'],[CalendarDays,'Leave & visitors','Requests, approvals and visits.'],[WalletCards,'Payments','Fees, dues and transaction history.'],[Sparkles,'Analytics & AI','A foundation for intelligent hostel decisions.']].map(([Icon,title,copy],i)=>{const FeatureIcon=Icon as typeof Activity;return <div className="feature feature-v5" key={String(title)}><div className="feature-v5-top"><span>0{i+1}</span><b><FeatureIcon size={17}/></b></div><h3>{String(title)}</h3><p>{String(copy)}</p><ArrowRight size={15}/></div>})}</div></section>
-      <section id="flow" className="flow-band flow-band-v5"><div className="section-heading-v5"><span>HOW IT WORKS</span><h2>Simple workflows.<br /><em>Clearer hostel days.</em></h2></div><div className="flow flow-v5">{[['01','Record','Keep student, room and attendance information organized.'],['02','Request','Let students raise complaints, leave and visitor requests.'],['03','Resolve','Give wardens one place to review and act.'],['04','Improve','Use analytics and AI to spot useful patterns.']].map(([n,t,d])=><div key={n}><strong>{n}</strong><b>{t}</b><small>{d}</small></div>)}</div></section>
-      <section id="benefits" className="benefits section benefits-v5"><div><span className="section-kicker">BUILT FOR CAMPUS LIFE</span><h2>Less manual work.<br /><em>More time for people.</em></h2><p>SmartStay gives students clarity and hostel teams a dependable operational view.</p><Button onClick={() => navigate('/login')}>Enter SmartStay <ArrowRight size={16} /></Button></div><div className="benefit-list">{['One source of truth','Faster complaint handling','Clear room & attendance visibility','Better communication','AI-ready data'].map((item,i)=><div key={item}><span>0{i+1}</span><strong>{item}</strong><Check size={16}/></div>)}</div></section>
+
+      <section id="features" className="section landing-section-v5">
+        <div className="section-heading-v5"><span>SMARTSTAY PLATFORM</span><h2>Everything important,<br /><em>in one connected workflow.</em></h2><p>Simple tools for the routines that matter most to students and hostel teams.</p></div>
+        <div className="feature-grid feature-grid-v5">
+          {[[Building2,'Rooms & allocations','Capacity, occupancy and student allocation.'],[ClipboardCheck,'Attendance','Clear daily records and history.'],[MessageSquare,'Complaints','Track issues through a visible status flow.'],[CalendarDays,'Leave & visitors','Requests, approvals and visits.'],[WalletCards,'Payments','Fees, dues and transaction history.'],[Sparkles,'Analytics & AI','A foundation for intelligent hostel decisions.']].map(([Icon,title,copy],i)=>{const FeatureIcon=Icon as typeof Activity;return <div className="feature feature-v5" key={String(title)}><div className="feature-v5-top"><span>0{i+1}</span><b><FeatureIcon size={17}/></b></div><h3>{String(title)}</h3><p>{String(copy)}</p><ArrowRight size={15}/></div>})}
+        </div>
+      </section>
+
+      <section id="flow" className="flow-band flow-band-v5">
+        <div className="section-heading-v5"><span>HOW IT WORKS</span><h2>Simple workflows.<br /><em>Clearer hostel days.</em></h2></div>
+        <div className="flow flow-v5">{[['01','Record','Keep student, room and attendance information organized.'],['02','Request','Let students raise complaints, leave and visitor requests.'],['03','Resolve','Give wardens one place to review and act.'],['04','Improve','Use analytics and AI to spot useful patterns.']].map(([n,t,d])=><div key={n}><strong>{n}</strong><b>{t}</b><small>{d}</small></div>)}</div>
+      </section>
+
+      <section id="benefits" className="benefits section benefits-v5">
+        <div><span className="section-kicker">BUILT FOR CAMPUS LIFE</span><h2>Less manual work.<br /><em>More time for people.</em></h2><p>SmartStay gives students clarity and hostel teams a dependable operational view.</p><Button onClick={() => navigate('/login')}>Enter SmartStay <ArrowRight size={16} /></Button></div>
+        <div className="benefit-list">{['One source of truth','Faster complaint handling','Clear room & attendance visibility','Better communication','AI-ready data'].map((item,i)=><div key={item}><span>0{i+1}</span><strong>{item}</strong><Check size={16}/></div>)}</div>
+      </section>
     </main>
-    <footer className="landing-footer-v5"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17}/></span> smart<span>stay</span></Link><span>Smart hostel management, made simple.</span><span>© 2026 SmartStay</span></footer>
+
+    <footer className="landing-footer-v5"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link><span>Smart hostel management, made simple.</span><span>© 2026 SmartStay</span></footer>
   </div>
 }
 
