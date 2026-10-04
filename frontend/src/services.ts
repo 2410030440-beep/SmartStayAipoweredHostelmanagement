@@ -341,3 +341,58 @@ export const attendanceService = {
 
 export const notificationService = { getUnreadCount: async () => Promise.resolve(3) }
 export const adminService = { getStudents: async () => Promise.resolve(students) }
+
+
+export type MessMeal = 'BREAKFAST' | 'LUNCH' | 'SNACKS' | 'DINNER'
+export type MessFeedback = {
+	id: number
+	student_id: number
+	meal: MessMeal
+	rating: number
+	comment: string | null
+	feedback_date: string
+	reviewed: boolean
+	created_at: string
+	updated_at: string
+}
+
+async function messFeedbackRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+	const token = getAuthToken()
+	if (!token) throw new Error('Your session has expired. Please sign in again.')
+
+	let response: Response
+	try {
+		response = await fetch(`${API_BASE_URL}/api/mess-feedback${path}`, {
+			...options,
+			headers: { Authorization: `Bearer ${token}`, ...(options.headers ?? {}) },
+		})
+	} catch {
+		throw new Error('Unable to reach SmartStay. Check that the backend is running and try again.')
+	}
+
+	if (!response.ok) {
+		if (response.status === 401) sessionStorage.removeItem(AUTH_TOKEN_KEY)
+		if (response.status === 403) throw new Error('You do not have permission to perform this action.')
+		throw new Error(await getErrorMessage(response))
+	}
+	if (response.status === 204) return undefined as T
+	return response.json() as Promise<T>
+}
+
+export const messFeedbackService = {
+	getMy: () => messFeedbackRequest<MessFeedback[]>('/my'),
+	getAll: () => messFeedbackRequest<MessFeedback[]>(''),
+	create: (input: { meal: MessMeal; rating: number; comment?: string }) =>
+		messFeedbackRequest<MessFeedback>('', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(input),
+		}),
+	update: (id: number, reviewed: boolean) =>
+		messFeedbackRequest<MessFeedback>(`/${id}`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ reviewed }),
+		}),
+	remove: (id: number) => messFeedbackRequest<void>(`/${id}`, { method: 'DELETE' }),
+}
