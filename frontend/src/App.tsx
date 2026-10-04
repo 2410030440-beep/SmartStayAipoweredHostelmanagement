@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertCircle, ArrowRight, BedDouble, Bell, Building2, CalendarDays, Check, ClipboardCheck, DoorOpen, FileText, Home, LayoutDashboard, Menu, MessageSquare, MoreHorizontal, Plus, Search, Settings, ShieldCheck, Sparkles, Stethoscope, UserRound, Users, Utensils, WalletCards, X } from 'lucide-react'
-import { announcements, complaints, leaveRequests, maintenance, menu, rooms, stats, visitors, type Role } from './data'
+import { announcements, leaveRequests, maintenance, menu, rooms, visitors, type Role } from './data'
 import { attendanceService, complaintService, getCurrentUser, loginUser, logoutUser, roomService, studentDashboardService, studentService, type AttendanceRecord, type AttendanceSummary, type Complaint, type ComplaintCategory, type ComplaintPriority, type ComplaintStatus, type Student } from './services'
 import StudentManagement from './StudentManagement'
 import RoomManagement from './RoomManagement'
@@ -20,7 +20,39 @@ function App() { return <BrowserRouter><Routes><Route path="/" element={<Landing
 
 function AdminGate() { const navigate = useNavigate(); const [checking, setChecking] = useState(true); useEffect(() => { let cancelled = false; void getCurrentUser().then((user) => { if (!cancelled && user.role !== 'ADMIN') navigate('/student', { replace: true }) }).catch(() => { if (!cancelled) { logoutUser(); navigate('/admin-login', { replace: true }) } }).finally(() => { if (!cancelled) setChecking(false) }); return () => { cancelled = true } }, [navigate]); return checking ? <div className="admin-dashboard-state"><div className="admin-spinner" /><p>Verifying administrator access...</p></div> : <Dashboard role="admin" /> }
 
-function LandingEntry() { return <div className="landing-entry"><Landing /><div className="landing-auth-links"><Link to="/student-login">Student Login</Link><Link to="/admin-login">Admin Login</Link><Link to="/signup">Create Student Account</Link></div></div> }
+function Landing() {
+  const navigate = useNavigate()
+  return <div className="landing landing-v5">
+    <nav className="landing-nav landing-nav-v5">
+      <Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link>
+      <div className="landing-links"><a href="#features">Platform</a><a href="#flow">How it works</a><a href="#benefits">Benefits</a></div>
+      <div className="nav-actions"><Link className="text-button" to="/admin-login">Admin</Link><Link className="text-button" to="/login">Sign in</Link><Button onClick={() => navigate('/login')}>Get started <ArrowRight size={16} /></Button></div>
+    </nav>
+    <main>
+      <section className="hero-v5">
+        <div className="hero-v5-copy">
+          <span className="hero-v5-kicker"><i /> SMART HOSTEL MANAGEMENT</span>
+          <h1>Smarter hostel management.<br /><em>Better everyday living.</em></h1>
+          <p>Rooms, attendance, complaints, leave, visitors and payments — connected in one intelligent workspace for students and wardens.</p>
+          <div className="hero-v5-actions"><Button onClick={() => navigate('/login')}>Explore SmartStay <ArrowRight size={16} /></Button><Link to="/signup">Create student account</Link></div>
+          <div className="hero-v5-checks"><span><Check size={14} /> Centralized records</span><span><Check size={14} /> Faster requests</span><span><Check size={14} /> AI-ready foundation</span></div>
+        </div>
+        <div className="hero-v5-side">
+          <div className="hero-v5-card">
+            <div className="hero-v5-card-head"><div><span>SMARTSTAY AI</span><strong>Hostel at a glance</strong></div><span className="hero-v5-spark"><Sparkles size={17} /></span></div>
+            <div className="hero-v5-metrics"><div><small>Students</small><strong>1,248</strong><span>Active records</span></div><div><small>Rooms</small><strong>412</strong><span>Managed spaces</span></div><div><small>Requests</small><strong>24</strong><span>Needs attention</span></div></div>
+            <div className="hero-v5-list"><div><span><BedDouble size={15} /></span><div><strong>Rooms & allocations</strong><small>Know every bed and vacancy.</small></div><ArrowRight size={14} /></div><div><span><MessageSquare size={15} /></span><div><strong>Complaint management</strong><small>Track every issue to resolution.</small></div><ArrowRight size={14} /></div><div><span><ClipboardCheck size={15} /></span><div><strong>Attendance visibility</strong><small>Keep daily records in one view.</small></div><ArrowRight size={14} /></div></div>
+            <div className="hero-v5-ai"><Sparkles size={15} /><div><strong>Built for smarter hostel decisions</strong><small>AI features can be layered on as the platform grows.</small></div></div>
+          </div>
+        </div>
+      </section>
+      <section id="features" className="section landing-section-v5"><div className="section-heading-v5"><span>SMARTSTAY PLATFORM</span><h2>Everything important,<br /><em>in one connected workflow.</em></h2><p>Simple tools for the routines that matter most to students and hostel teams.</p></div><div className="feature-grid feature-grid-v5">{[[Building2,'Rooms & allocations','Capacity, occupancy and student allocation.'],[ClipboardCheck,'Attendance','Clear daily records and history.'],[MessageSquare,'Complaints','Track issues through a visible status flow.'],[CalendarDays,'Leave & visitors','Requests, approvals and visits.'],[WalletCards,'Payments','Fees, dues and transaction history.'],[Sparkles,'Analytics & AI','A foundation for intelligent hostel decisions.']].map(([Icon,title,copy],i)=>{const FeatureIcon=Icon as typeof Activity;return <div className="feature feature-v5" key={String(title)}><div className="feature-v5-top"><span>0{i+1}</span><b><FeatureIcon size={17}/></b></div><h3>{String(title)}</h3><p>{String(copy)}</p><ArrowRight size={15}/></div>})}</div></section>
+      <section id="flow" className="flow-band flow-band-v5"><div className="section-heading-v5"><span>HOW IT WORKS</span><h2>Simple workflows.<br /><em>Clearer hostel days.</em></h2></div><div className="flow flow-v5">{[['01','Record','Keep student, room and attendance information organized.'],['02','Request','Let students raise complaints, leave and visitor requests.'],['03','Resolve','Give wardens one place to review and act.'],['04','Improve','Use analytics and AI to spot useful patterns.']].map(([n,t,d])=><div key={n}><strong>{n}</strong><b>{t}</b><small>{d}</small></div>)}</div></section>
+      <section id="benefits" className="benefits section benefits-v5"><div><span className="section-kicker">BUILT FOR CAMPUS LIFE</span><h2>Less manual work.<br /><em>More time for people.</em></h2><p>SmartStay gives students clarity and hostel teams a dependable operational view.</p><Button onClick={() => navigate('/login')}>Enter SmartStay <ArrowRight size={16} /></Button></div><div className="benefit-list">{['One source of truth','Faster complaint handling','Clear room & attendance visibility','Better communication','AI-ready data'].map((item,i)=><div key={item}><span>0{i+1}</span><strong>{item}</strong><Check size={16}/></div>)}</div></section>
+    </main>
+    <footer className="landing-footer-v5"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17}/></span> smart<span>stay</span></Link><span>Smart hostel management, made simple.</span><span>© 2026 SmartStay</span></footer>
+  </div>
+}
 
 function LoginRoute({ expectedRole }: { expectedRole?: 'STUDENT' | 'ADMIN' }) { const location = useLocation(); const message = (location.state as { message?: string } | null)?.message; return <div className="login-route"><Login expectedRole={expectedRole} />{message && <div className="auth-success" role="status">{message}</div>}<div className="login-route-links"><Link className="auth-switch" to="/student-login">Student Login</Link><Link className="auth-switch" to="/admin-login">Admin Login</Link><Link className="auth-switch" to="/signup">Create an account</Link></div></div> }
 
@@ -127,47 +159,17 @@ function Dashboard({ role }: { role: Role }) {
   const location = useLocation()
   const current = pages.find((page) => location.pathname === page.path) ?? pages[0]
   const initials = currentUser?.name?.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase() || (role === 'student' ? 'ST' : 'AD')
-
-  useEffect(() => {
-    let cancelled = false
-    getCurrentUser().then((user) => {
-      if (!cancelled) setCurrentUser({ name: user.name, email: user.email })
-    }).catch(() => {})
-    return () => { cancelled = true }
-  }, [])
-
+  useEffect(() => { let cancelled = false; getCurrentUser().then((user) => { if (!cancelled) setCurrentUser({ name: user.name, email: user.email }) }).catch(() => {}); return () => { cancelled = true } }, [])
   const groups = role === 'student'
-    ? [
-        { label: 'Overview', items: pages.slice(0, 1) },
-        { label: 'My stay', items: pages.slice(1, 5) },
-        { label: 'Services', items: pages.slice(5, 9) },
-        { label: 'Finance & updates', items: pages.slice(9) },
-      ]
-    : [
-        { label: 'Overview', items: pages.slice(0, 1) },
-        { label: 'People & spaces', items: pages.slice(1, 4) },
-        { label: 'Operations', items: pages.slice(4, 10) },
-        { label: 'Finance & communication', items: pages.slice(10, 12) },
-        { label: 'Insights', items: pages.slice(12) },
-      ]
-
-  return <div className="app-shell">
-    <div className={open ? 'mobile-scrim show' : 'mobile-scrim'} onClick={() => setOpen(false)} />
-    <aside className={open ? 'sidebar open' : 'sidebar'}>
-      <div className="side-brand"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link><button className="close-mobile" onClick={() => setOpen(false)} aria-label="Close navigation"><X /></button></div>
-      <div className="workspace-switcher"><span className="workspace-icon">{role === 'student' ? <UserRound size={16} /> : <ShieldCheck size={16} />}</span><span><small>{role === 'student' ? 'PERSONAL SPACE' : 'OPERATIONS SPACE'}</small><strong>{role === 'student' ? 'Student workspace' : 'Warden workspace'}</strong></span><span className="workspace-status-dot" /></div>
-      <nav className="side-nav side-nav-grouped">
-        {groups.map((group) => <div className="nav-group" key={group.label}><span className="nav-group-label">{group.label}</span>{group.items.map(({ label, icon: Icon, path }) => <NavLink onClick={() => setOpen(false)} className={({ isActive }) => isActive ? 'active' : ''} to={path} key={path} end={path === '/student' || path === '/admin'}><span className="nav-icon"><Icon size={17} /></span><span>{label}</span>{label === 'Notifications' && <span className="nav-count">3</span>}</NavLink>)}</div>)}
-      </nav>
-      <div className="side-bottom">
-        <div className="help-card premium-help"><span className="help-icon"><Sparkles size={16} /></span><div><strong>SmartStay AI</strong><small>Insights will appear here as the AI layer grows.</small></div></div>
-        <div className="profile-mini"><span className="avatar">{initials}</span><span className="profile-mini-copy"><strong>{currentUser?.name ?? (role === 'student' ? 'Student' : 'Administrator')}</strong><small>{currentUser?.email ?? (role === 'student' ? 'Student account' : 'Admin account')}</small></span><button className="profile-menu" aria-label="Account menu"><MoreHorizontal size={17} /></button></div>
-      </div>
-    </aside>
-    <div className="main-shell">
-      <header className="app-header"><div className="header-left"><button className="menu-button" onClick={() => setOpen(true)} aria-label="Open navigation"><Menu /></button><div className="breadcrumb"><span>{role === 'student' ? 'Student workspace' : 'Warden workspace'}</span><ArrowRight size={13} /><strong>{current.label}</strong></div></div><div className="header-actions"><SearchInput placeholder="Search SmartStay..." /><button className="icon-button header-notification" aria-label="Notifications" onClick={() => location.pathname.startsWith('/student') ? window.location.assign('/student/notifications') : window.location.assign('/admin/notifications')}><Bell size={18} /><i /></button><div className="header-avatar" title={currentUser?.name ?? ''}>{initials}</div></div></header>
-      <main className="dashboard-main"><Routes><Route index element={role === 'student' ? <StudentHome /> : <AdminHome />} /><Route path="*" element={role === 'student' ? <StudentPage path={location.pathname} /> : <AdminPage path={location.pathname} />} /></Routes></main>
-    </div>
+    ? [{ label: 'Overview', items: pages.slice(0, 1) }, { label: 'My stay', items: pages.slice(1, 5) }, { label: 'Services', items: pages.slice(5, 9) }, { label: 'Finance & updates', items: pages.slice(9) }]
+    : [{ label: 'Overview', items: pages.slice(0, 1) }, { label: 'People & spaces', items: pages.slice(1, 4) }, { label: 'Operations', items: pages.slice(4, 10) }, { label: 'Finance & communication', items: pages.slice(10, 12) }, { label: 'Insights', items: pages.slice(12) }]
+  return <div className="app-shell dashboard-v5-shell"><div className={open ? 'mobile-scrim show' : 'mobile-scrim'} onClick={() => setOpen(false)} /><aside className={open ? 'sidebar open dashboard-v5-sidebar' : 'sidebar dashboard-v5-sidebar'}>
+    <div className="side-brand"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link><button className="close-mobile" onClick={() => setOpen(false)} aria-label="Close navigation"><X /></button></div>
+    <div className="workspace-switcher"><span className="workspace-icon">{role === 'student' ? <UserRound size={15}/> : <ShieldCheck size={15}/>}</span><span><small>{role === 'student' ? 'PERSONAL SPACE' : 'OPERATIONS SPACE'}</small><strong>{role === 'student' ? 'Student workspace' : 'Warden workspace'}</strong></span><MoreHorizontal size={14}/></div>
+    <nav className="side-nav side-nav-grouped">{groups.map(group => <div className="nav-group" key={group.label}><span className="nav-group-label">{group.label}</span>{group.items.map(({label,icon:Icon,path})=><NavLink key={path} to={path} end={path === '/student' || path === '/admin'} onClick={()=>setOpen(false)} className={({isActive})=>isActive?'active':''}><span className="nav-icon"><Icon size={16}/></span><span>{label}</span>{label === 'Notifications' && <span className="nav-count">3</span>}</NavLink>)}</div>)}</nav>
+    <div className="side-bottom"><div className="help-card dashboard-v5-help"><span className="help-icon"><Sparkles size={15}/></span><div><strong>Smart AI</strong><small>Future intelligence for your hostel.</small></div></div><div className="profile-mini"><span className="avatar">{initials}</span><span className="profile-mini-copy"><strong>{currentUser?.name ?? (role === 'student' ? 'Student' : 'Administrator')}</strong><small>{currentUser?.email ?? ''}</small></span></div></div>
+  </aside>
+  <div className="main-shell"><header className="app-header dashboard-v5-header"><div className="header-left"><button className="menu-button" onClick={()=>setOpen(true)}><Menu/></button><div className="breadcrumb"><span>{role === 'student' ? 'Student workspace' : 'Warden workspace'}</span><ArrowRight size={12}/><strong>{current.label}</strong></div></div><div className="header-actions"><SearchInput placeholder="Search SmartStay..."/><button className="icon-button header-notification" onClick={()=>location.pathname.startsWith('/student')?window.location.assign('/student/notifications'):window.location.assign('/admin/notifications')}><Bell size={18}/><i/></button><div className="header-avatar">{initials}</div></div></header><main className="dashboard-main dashboard-v5-main"><Routes><Route index element={role === 'student' ? <StudentHome/> : <AdminHome/>}/><Route path="*" element={role === 'student' ? <StudentPage path={location.pathname}/> : <AdminPage path={location.pathname}/>}/></Routes></main></div>
   </div>
 }
 
@@ -177,48 +179,32 @@ function StudentHome() {
   const navigate = useNavigate()
   const [profile, setProfile] = useState<Student | null>(null)
   const [attendance, setAttendance] = useState<AttendanceSummary | null>(null)
-  const [recentComplaints, setRecentComplaints] = useState<Complaint[]>([])
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-    Promise.all([studentDashboardService.getProfile(), attendanceService.getOverview(), complaintService.getMy()])
-      .then(([studentProfile, attendanceSummary, complaintRecords]) => {
-        if (!cancelled) { setProfile(studentProfile); setAttendance(attendanceSummary); setRecentComplaints(complaintRecords.slice(0, 3)) }
-      })
-      .catch((requestError) => { if (!cancelled) setError(requestError instanceof Error ? requestError.message : 'Unable to load your dashboard.') })
-    return () => { cancelled = true }
-  }, [])
-
-  const displayName = profile?.full_name ?? 'Student'
-  const firstName = displayName.split(' ')[0]
-  const roomLabel = profile?.room_number ?? 'Not allocated'
-  const attendanceValue = attendance ? String(attendance.attendance_percentage) + '%' : '—'
-  const presentValue = attendance?.present_days ?? 0
-  const absentValue = attendance?.absent_days ?? 0
-  const totalValue = attendance?.total_days ?? 0
-  const presentWidth = attendance && attendance.total_days > 0 ? (attendance.present_days / attendance.total_days) * 100 : 0
-  const openRequests = recentComplaints.filter((item) => item.status === 'OPEN' || item.status === 'IN_PROGRESS').length
-  const complaintTone = (statusValue: ComplaintStatus) => statusValue === 'RESOLVED' || statusValue === 'CLOSED' ? 'mint' : statusValue === 'IN_PROGRESS' ? 'blue' : 'amber'
-
+  useEffect(()=>{let cancelled=false;Promise.all([studentDashboardService.getProfile(),attendanceService.getOverview()]).then(([studentProfile,attendanceSummary])=>{if(!cancelled){setProfile(studentProfile);setAttendance(attendanceSummary)}}).catch(requestError=>{if(!cancelled)setError(requestError instanceof Error?requestError.message:'Unable to load your dashboard.')});return()=>{cancelled=true}},[])
+  const displayName=profile?.full_name ?? 'Student'
+  const firstName=displayName.split(' ')[0]
+  const roomLabel=profile?.room_number ?? 'Not allocated'
+  const attendanceValue=attendance ? String(attendance.attendance_percentage)+'%' : '—'
+  const present=attendance?.present_days ?? 0
+  const absent=attendance?.absent_days ?? 0
+  const total=attendance?.total_days ?? 0
   return <>
-    <div className="dashboard-welcome"><div><span className="eyebrow">STUDENT OVERVIEW</span><h1>Good morning, {firstName} <span>👋</span></h1><p>Your hostel essentials, requests and updates — all in one place.</p></div><div className="welcome-actions"><button className="quick-action secondary" onClick={() => navigate('/student/attendance')}><ClipboardCheck size={16} /> View attendance</button><button className="quick-action primary" onClick={() => navigate('/student/complaints')}><Plus size={16} /> New request</button></div></div>
-    {error && <div className="dashboard-alert"><AlertCircle size={17} /><span>{error}</span></div>}
-    <div className="stats-grid student-stat-grid">
-      <StatCard label="Attendance" value={attendanceValue} note={attendance ? presentValue + ' present of ' + totalValue + ' recorded days' : 'Loading'} tone="mint" icon={ClipboardCheck} />
-      <StatCard label="My room" value={roomLabel} note={profile?.room_number ? 'Active allocation' : 'Awaiting allocation'} tone="blue" icon={BedDouble} />
-      <StatCard label="Open requests" value={String(openRequests)} note={recentComplaints.length ? 'Based on your complaint activity' : 'No complaint activity yet'} tone="indigo" icon={MessageSquare} />
-      <StatCard label="Status" value={profile?.status?.replace('_', ' ') ?? 'Loading'} note={profile?.year ?? 'Student account'} tone="soft" icon={ShieldCheck} />
+    <div className="dash-welcome-v5"><div><span className="eyebrow">STUDENT OVERVIEW</span><h1>Good morning, {firstName} <span>👋</span></h1><p>Your hostel essentials, requests and updates in one clear view.</p></div><div className="dash-actions-v5"><button className="dash-btn-secondary" onClick={()=>navigate('/student/attendance')}><ClipboardCheck size={15}/> Attendance</button><button className="dash-btn-primary" onClick={()=>navigate('/student/complaints')}><Plus size={15}/> New request</button></div></div>
+    {error && <div className="dashboard-alert"><AlertCircle size={16}/><span>{error}</span></div>}
+    <div className="dash-kpi-grid-v5">
+      <div className="dash-kpi-v5"><span>ATTENDANCE</span><strong>{attendanceValue}</strong><small>{present} present of {total} recorded</small><i><b style={{width:String(attendance?.attendance_percentage ?? 0)+'%'}}/></i></div>
+      <div className="dash-kpi-v5"><span>MY ROOM</span><strong>{roomLabel}</strong><small>{profile?.room_number ? 'Active allocation' : 'Awaiting allocation'}</small></div>
+      <div className="dash-kpi-v5"><span>HOSTEL STATUS</span><strong>{profile?.status?.replace('_',' ') ?? 'Loading'}</strong><small>{profile?.year ?? 'Student account'}</small></div>
+      <div className="dash-kpi-v5"><span>NOTIFICATIONS</span><strong>3</strong><small>Unread SmartStay updates</small></div>
     </div>
-    <div className="student-dashboard-grid top-grid">
-      <section className="panel attendance-card"><div className="panel-heading"><div><span className="eyebrow">ACADEMIC PULSE</span><h2>Attendance overview</h2></div><Link to="/student/attendance">View records <ArrowRight size={15} /></Link></div><div className="attendance-main"><div className="attendance-score"><strong>{attendanceValue}</strong><span>overall attendance</span><small>{presentValue} present · {absentValue} absent</small></div><div className="attendance-bars"><div><span><b>Present</b><strong>{presentValue} days</strong></span><i><b style={{ width: presentWidth + '%' }} /></i></div><div><span><b>Absent</b><strong>{absentValue} days</strong></span><i className="bar-muted"><b style={{ width: (totalValue ? (absentValue / totalValue) * 100 : 0) + '%' }} /></i></div></div></div></section>
-      <section className="panel room-overview-card"><div className="panel-heading"><div><span className="eyebrow">MY ROOM</span><h2>{roomLabel}</h2></div><span className="room-icon-soft"><BedDouble size={22} /></span></div><div className="room-overview-meta"><span>Allocation</span><strong>{profile?.room_number ? 'Active' : 'Pending'}</strong></div><div className="room-facts"><div><small>Student ID</small><strong>{profile?.student_id ?? '—'}</strong></div><div><small>Phone</small><strong>{profile?.phone ?? 'Not provided'}</strong></div></div><Link className="soft-link" to="/student/room">View room details <ArrowRight size={15} /></Link></section>
+    <div className="dash-grid-v5 top-v5">
+      <section className="dash-card-v5"><div className="dash-head-v5"><div><span>ATTENDANCE</span><h2>Attendance overview</h2></div><Link to="/student/attendance">View records <ArrowRight size={13}/></Link></div><div className="attendance-body-v5"><div className="attendance-ring-v5" style={{'--value':String(attendance?.attendance_percentage ?? 0)+'%'} as React.CSSProperties}><strong>{attendanceValue}</strong><small>overall</small></div><div className="attendance-details-v5"><div><span>Present days</span><strong>{present}</strong></div><div><span>Absent days</span><strong>{absent}</strong></div><div><i><b style={{width:String(total ? (present/total)*100 : 0)+'%'}}/></i><small>Attendance progress</small></div></div></div></section>
+      <section className="dash-card-v5"><div className="dash-head-v5"><div><span>MY ROOM</span><h2>{roomLabel}</h2></div><span className="room-icon-v5"><BedDouble size={20}/></span></div><div className="room-status-v5"><span>Allocation status</span><Badge tone={profile?.room_number?'mint':'amber'}>{profile?.room_number?'Active':'Pending'}</Badge></div><div className="room-facts-v5"><div><small>Student ID</small><strong>{profile?.student_id ?? '—'}</strong></div><div><small>Phone</small><strong>{profile?.phone ?? 'Not provided'}</strong></div></div><Link className="dash-link-v5" to="/student/room">View room details <ArrowRight size={13}/></Link></section>
     </div>
-    <div className="student-dashboard-grid lower-grid">
-      <section className="panel requests-card"><div className="panel-heading"><div><span className="eyebrow">REQUESTS</span><h2>Recent requests</h2></div><Link to="/student/complaints">View all <ArrowRight size={15} /></Link></div>{recentComplaints.length === 0 ? <div className="dashboard-empty"><MessageSquare size={21} /><strong>No requests yet</strong><span>Raise a complaint and it will appear here.</span><button className="text-button-blue" onClick={() => navigate('/student/complaints')}>Create request</button></div> : <div className="request-list-v2">{recentComplaints.map((item) => <div className="request-row-v2" key={item.id}><span className="request-icon"><MessageSquare size={15} /></span><div><strong>{item.complaint_number} · {item.title}</strong><small>{item.category} · {new Date(item.created_at).toLocaleDateString()}</small></div><Badge tone={complaintTone(item.status)}>{item.status.replace('_', ' ')}</Badge></div>)}</div>}</section>
-      <section className="panel updates-card"><div className="panel-heading"><div><span className="eyebrow">CAMPUS UPDATES</span><h2>What’s happening</h2></div><Link to="/student/notifications">View all <ArrowRight size={15} /></Link></div><div className="updates-list">{announcements.slice(0, 3).map((item) => <div className="update-row-v2" key={item.title}><span className="update-icon"><Bell size={15} /></span><div><div><strong>{item.title}</strong><Badge tone={item.tag === 'Maintenance' ? 'amber' : 'soft'}>{item.tag}</Badge></div><small>{item.body}</small><em>{item.date}</em></div></div>)}</div></section>
+    <div className="dash-grid-v5 bottom-v5">
+      <section className="dash-card-v5"><div className="dash-head-v5"><div><span>CAMPUS UPDATES</span><h2>Stay informed</h2></div><Link to="/student/notifications">View all <ArrowRight size={13}/></Link></div><div className="update-list-v5">{announcements.slice(0,4).map(item=><div className="update-item-v5" key={item.title}><span><Bell size={14}/></span><div><strong>{item.title}</strong><small>{item.body}</small><em>{item.date}</em></div></div>)}</div></section>
+      <section className="dash-card-v5"><div className="dash-head-v5"><div><span>QUICK ACTIONS</span><h2>Get things done</h2></div><Sparkles size={15}/></div><div className="shortcut-list-v5">{[['Complaints',MessageSquare,'/student/complaints'],['Leave requests',CalendarDays,'/student/leave'],['Visitors',Users,'/student/visitors'],['Payments',WalletCards,'/student/payments']].map(([title,Icon,path])=>{const I=Icon as typeof Activity;return <button key={String(title)} onClick={()=>navigate(String(path))}><span><I size={15}/></span><strong>{String(title)}</strong><ArrowRight size={13}/></button>})}</div></section>
     </div>
-    <section className="panel quick-links-panel"><div className="panel-heading"><div><span className="eyebrow">SHORTCUTS</span><h2>Get things done</h2></div><span className="section-icon"><Sparkles size={17} /></span></div><div className="quick-links-grid">{[['Complaints', MessageSquare, '/student/complaints', 'Report an issue'], ['Leave request', CalendarDays, '/student/leave', 'Plan time away'], ['Visitors', Users, '/student/visitors', 'Register a guest'], ['Payments', WalletCards, '/student/payments', 'View fees and transactions']].map(([label, Icon, path, copy]) => { const QuickIcon = Icon as typeof Activity; return <button className="quick-link-card" key={String(label)} onClick={() => navigate(String(path))}><span className="quick-link-icon"><QuickIcon size={17} /></span><span><strong>{String(label)}</strong><small>{String(copy)}</small></span><ArrowRight size={15} /></button> })}</div></section>
   </>
 }
 
