@@ -270,3 +270,24 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Light-blue SmartStay management styling */
+.student-management-panel,.student-details,.student-modal{border-color:#dce7f2}
+.student-search input{border-bottom-color:#dce7f2;color:#10233f}
+.student-search input:focus{border-color:#2563eb}
+.student-count,.student-muted{color:#6b7d93}
+.student-actions button,.student-notice button{border-color:#dce7f2;color:#72859a}
+.student-actions button:hover,.student-notice button:hover{color:#2563eb;border-color:#b8d0eb}
+.student-status{background:#e8f8f2;color:#0c8a65}
+.student-status.inactive{background:#fff0f0;color:#c24141}
+.student-status.on_leave{background:#fff6df;color:#a16207}
+.student-empty-icon{background:#eaf3ff;color:#2563eb}
+.student-notice{background:#e8f8f2;color:#0c8a65;border:1px solid #c8efdf}
+.student-error{background:#fff0f0;color:#c24141;border:1px solid #ffd7d7}
+.student-form-grid label,.student-detail-grid small{color:#36506d}
+.student-form-grid input,.student-form-grid select{border-color:#dce7f2;background:#fbfdff;color:#10233f}
+.student-form-grid input:focus,.student-form-grid select:focus{border-color:#8bb7eb;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.student-detail-grid{border-color:#dce7f2}
+.student-detail-grid div{background:#fbfdff}
+.student-detail-grid strong{color:#29445f}
