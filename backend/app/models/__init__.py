@@ -3,6 +3,7 @@ from app.models.attendance import Attendance, AttendanceStatus
 from app.models.room import Room, RoomStatus
 from app.models.student import Student, StudentStatus
 from app.models.user import User, UserRole
+from app.models.mess_feedback import MessFeedback, MessMeal
 
 __all__ = [
     "Complaint",
@@ -17,4 +18,6 @@ __all__ = [
     "StudentStatus",
     "User",
     "UserRole",
+    "MessFeedback",
+    "MessMeal",
 ]
