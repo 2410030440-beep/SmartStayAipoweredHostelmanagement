@@ -361,7 +361,6 @@ function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
 function AdminHome() {
   const [studentCount, setStudentCount] = useState<number | null>(null)
   const [roomCount, setRoomCount] = useState<number | null>(null)
-  const [complaintCount, setComplaintCount] = useState<number | null>(null)
 
   useEffect(() => {
     let cancelled = false
