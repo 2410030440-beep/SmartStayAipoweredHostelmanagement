@@ -140,3 +140,20 @@
     justify-content: center;
   }
 }
+
+
+/* SmartStay light-blue authentication styling */
+.login-art{background:linear-gradient(145deg,#eef6ff 0%,#f7fbff 54%,#e8f4ff 100%);color:#10233f;border-right:1px solid #dce7f2}
+.login-art h1{color:#10233f}
+.login-art h1 em{color:#2563eb}
+.login-art p{color:#6b7d93}
+.login-art .brand{color:#10233f}
+.login-form{background:#fff}
+.auth-form label{color:#36506d}
+.auth-form input{border-color:#dce7f2;background:#fbfdff;color:#10233f}
+.auth-form input:focus{border-color:#8bb7eb;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.auth-submit{background:#2563eb!important}
+.login-note{background:#f0f7ff;border-color:#dcecff;color:#36506d}
+.auth-switch{color:#2563eb}
+.login-route-links,.landing-auth-links{border-color:#dce7f2;background:#fff;box-shadow:0 10px 30px rgba(37,99,235,.07)}
+.auth-success{border-color:#c8efdf;background:#e8f8f2;color:#0c8a65}
