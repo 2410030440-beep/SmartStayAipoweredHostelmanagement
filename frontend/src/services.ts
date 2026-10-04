@@ -259,7 +259,77 @@ export const studentDashboardService = {
 
 export { roomManagementService as roomService }
 
-export const complaintService = { getComplaints: async () => Promise.resolve(complaints) }
+export type ComplaintCategory = 'MAINTENANCE' | 'MESS' | 'ROOM' | 'INTERNET' | 'SECURITY' | 'ACADEMIC' | 'HOSTEL' | 'OTHER'
+export type ComplaintPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+export type ComplaintStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED'
+
+export type Complaint = {
+	id: number
+	complaint_number: string
+	student_id: number
+	room_number: string | null
+	title: string
+	description: string
+	category: ComplaintCategory
+	priority: ComplaintPriority
+	status: ComplaintStatus
+	admin_note: string | null
+	resolved_at: string | null
+	created_at: string
+	updated_at: string
+}
+
+async function complaintRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+	const token = getAuthToken()
+	if (!token) throw new Error('Your session has expired. Please sign in again.')
+
+	let response: Response
+	try {
+		response = await fetch(`${API_BASE_URL}/api/complaints${path}`, {
+			...options,
+			headers: { Authorization: `Bearer ${token}`, ...(options.headers ?? {}) },
+		})
+	} catch {
+		throw new Error('Unable to reach SmartStay. Check that the backend is running and try again.')
+	}
+
+	if (!response.ok) {
+		if (response.status === 401) sessionStorage.removeItem(AUTH_TOKEN_KEY)
+		if (response.status === 403) throw new Error('You do not have permission to perform this action.')
+		throw new Error(await getErrorMessage(response))
+	}
+	if (response.status === 204) return undefined as T
+	return response.json() as Promise<T>
+}
+
+export const complaintService = {
+	getMy: (status?: ComplaintStatus) => {
+		const query = status ? `?status=${encodeURIComponent(status)}` : ''
+		return complaintRequest<Complaint[]>(`/my${query}`)
+	},
+	getAll: (status?: ComplaintStatus) => {
+		const query = status ? `?status=${encodeURIComponent(status)}` : ''
+		return complaintRequest<Complaint[]>(query)
+	},
+	create: (input: {
+		title: string
+		description: string
+		category: ComplaintCategory
+		priority: ComplaintPriority
+	}) => complaintRequest<Complaint>('', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(input),
+	}),
+	update: (
+		complaintId: number,
+		input: { status?: ComplaintStatus; priority?: ComplaintPriority; admin_note?: string | null },
+	) => complaintRequest<Complaint>(`/${complaintId}`, {
+		method: 'PUT',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(input),
+	}),
+}
 
 export const attendanceService = {
 	getOverview: () => attendanceRequest<AttendanceSummary>('/my/summary'),
