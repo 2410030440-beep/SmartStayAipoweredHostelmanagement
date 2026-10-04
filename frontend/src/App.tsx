@@ -31,7 +31,7 @@ function Landing() {
 
     <main>
       <section className="photo-hero">
-        <img className="photo-hero-image" src="/smartstay-hero.webp" alt="Students relaxing and studying in a modern hostel common room" />
+        <img className="photo-hero-image" src="/smartstay-hero.png" alt="Students relaxing and studying in a modern hostel common room" />
         <div className="photo-hero-overlay" />
         <div className="photo-hero-content">
           <span className="photo-hero-kicker"><i /> AI-POWERED HOSTEL MANAGEMENT</span>
