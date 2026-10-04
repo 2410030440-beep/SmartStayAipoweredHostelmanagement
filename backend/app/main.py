@@ -5,9 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database.base import Base
 from app.database.connection import engine
-from app.models import attendance, room, student, user
+from app.models import attendance, complaint, room, student, user
 from app.routers.attendance import router as attendance_router
 from app.routers.auth import router as auth_router
+from app.routers.complaints import router as complaints_router
 from app.routers.students import router as students_router
 from app.routers.rooms import router as rooms_router
 from app.core.config import settings
@@ -38,6 +39,7 @@ app.include_router(auth_router)
 app.include_router(students_router)
 app.include_router(rooms_router)
 app.include_router(attendance_router)
+app.include_router(complaints_router)
 
 
 @app.get("/")
