@@ -208,9 +208,66 @@ export function logoutUser(): void {
 
 export { studentManagementService as studentService }
 
-export const studentDashboardService = { getProfile: async () => Promise.resolve({}), getAnnouncements: async () => Promise.resolve(announcements) }
+export type AttendanceStatus = 'PRESENT' | 'ABSENT'
+
+export type AttendanceRecord = {
+	id: number
+	student_id: number
+	attendance_date: string
+	status: AttendanceStatus
+	created_at: string
+	updated_at: string
+}
+
+export type AttendanceSummary = {
+	total_days: number
+	present_days: number
+	absent_days: number
+	attendance_percentage: number
+}
+
+async function attendanceRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+	const token = getAuthToken()
+	if (!token) throw new Error('Your session has expired. Please sign in again.')
+
+	let response: Response
+	try {
+		response = await fetch(`${API_BASE_URL}/api/attendance${path}`, {
+			...options,
+			headers: { Authorization: `Bearer ${token}`, ...(options.headers ?? {}) },
+		})
+	} catch {
+		throw new Error('Unable to reach SmartStay. Check that the backend is running and try again.')
+	}
+
+	if (!response.ok) {
+		if (response.status === 401) sessionStorage.removeItem(AUTH_TOKEN_KEY)
+		if (response.status === 403) throw new Error('You do not have permission to view this attendance data.')
+		throw new Error(await getErrorMessage(response))
+	}
+	if (response.status === 204) return undefined as T
+	return response.json() as Promise<T>
+}
+
+export const studentDashboardService = {
+	getProfile: async (): Promise<Student | null> => {
+		const records = await studentManagementService.list()
+		return records[0] ?? null
+	},
+	getAnnouncements: async () => Promise.resolve([]),
+}
+
 export { roomManagementService as roomService }
+
 export const complaintService = { getComplaints: async () => Promise.resolve(complaints) }
-export const attendanceService = { getOverview: async () => Promise.resolve({ present: 104, absent: 10, total: 114 }) }
+
+export const attendanceService = {
+	getOverview: () => attendanceRequest<AttendanceSummary>('/my/summary'),
+	getRecords: (month?: string) => {
+		const query = month ? `?month=${encodeURIComponent(month)}` : ''
+		return attendanceRequest<AttendanceRecord[]>(`/my${query}`)
+	},
+}
+
 export const notificationService = { getUnreadCount: async () => Promise.resolve(3) }
 export const adminService = { getStudents: async () => Promise.resolve(students) }
