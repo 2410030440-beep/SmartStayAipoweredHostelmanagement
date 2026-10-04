@@ -309,3 +309,27 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Light-blue SmartStay room management styling */
+.room-search input{border-bottom-color:#dce7f2;color:#10233f}
+.room-search input:focus{border-color:#2563eb}
+.room-filter{border-color:#dce7f2;color:#29445f;background:#fff}
+.room-count{color:#6b7d93}
+.room-actions button,.room-notice button{border-color:#dce7f2;color:#72859a}
+.room-actions button:hover,.room-notice button:hover{border-color:#b8d0eb;color:#2563eb}
+.room-status.available{background:#e8f8f2;color:#0c8a65}
+.room-status.partially_occupied{background:#eaf3ff;color:#2563eb}
+.room-status.full{background:#fff6df;color:#a16207}
+.room-status.maintenance{background:#fff0f0;color:#c24141}
+.room-empty-icon{background:#eaf3ff;color:#2563eb}
+.room-notice{background:#e8f8f2;color:#0c8a65;border:1px solid #c8efdf}
+.room-error{background:#fff0f0;color:#c24141;border:1px solid #ffd7d7}
+.room-form-grid label,.allocation-modal .room-form > label{color:#36506d}
+.room-form-grid input,.room-form-grid select,.allocation-modal select{border-color:#dce7f2;background:#fbfdff;color:#10233f}
+.room-form-grid input:focus,.room-form-grid select:focus,.allocation-modal select:focus{border-color:#8bb7eb;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.room-detail-card{border-color:#dce7f2;background:#fff;box-shadow:0 10px 32px rgba(37,99,235,.06)}
+.room-metrics{border-color:#dce7f2}
+.room-metrics div{background:#f8fbff}
+.room-metrics small{color:#6b7d93}
+.room-metrics strong{color:#29445f}
