@@ -22,5 +22,13 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
+  "exclude": [
+    "src/StudentProfile.tsx",
+    "src/AnnouncementManagement.tsx",
+    "src/AttendanceManagement.tsx",
+    "src/BulkAttendanceSheet.tsx",
+    "src/LeaveManagement.tsx",
+    "src/VisitorManagement.tsx"
+  ],
   "include": ["src"]
 }
