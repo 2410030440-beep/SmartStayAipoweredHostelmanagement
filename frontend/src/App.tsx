@@ -26,91 +26,95 @@ function LoginRoute({ expectedRole }: { expectedRole?: 'STUDENT' | 'ADMIN' }) { 
 
 function Landing() {
   const navigate = useNavigate()
-  const featureItems = [
-    [Building2, 'Room intelligence', 'See beds, allocations and occupancy without spreadsheet chaos.'],
-    [MessageSquare, 'Requests that move', 'Track complaints and service requests from open to resolved.'],
-    [ClipboardCheck, 'Attendance clarity', 'Give students and wardens one reliable attendance view.'],
-    [Utensils, 'Mess made simple', 'Keep menus, meal updates and feedback in one place.'],
-    [CalendarDays, 'Leave & visitor flow', 'Make requests, approvals and arrivals easier to manage.'],
-    [Sparkles, 'AI-ready insights', 'Build a stronger foundation for smarter hostel decisions.'],
+  const cards = [
+    [Building2, 'Rooms & allocations', 'Know every bed, room and vacancy.'],
+    [ClipboardCheck, 'Attendance', 'Track presence without paperwork.'],
+    [MessageSquare, 'Complaints', 'Move issues from report to resolution.'],
+    [CalendarDays, 'Leave & visitors', 'Keep requests visible and organized.'],
   ]
-  return <div className="landing landing-v2">
-    <nav className="landing-nav">
+  return <div className="landing landing-v3">
+    <nav className="landing-nav landing-nav-v3">
       <Link className="brand landing-brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link>
-      <div className="landing-links"><a href="#features">Platform</a><a href="#flow">How it works</a><a href="#benefits">Why SmartStay</a></div>
-      <div className="nav-actions"><Link className="text-button" to="/login">Sign in</Link><Button onClick={() => navigate('/login')}>Open workspace <ArrowRight size={16} /></Button></div>
+      <div className="landing-links"><a href="#features">Platform</a><a href="#flow">Workflow</a><a href="#benefits">Why SmartStay</a></div>
+      <div className="nav-actions"><Link className="text-button" to="/login">Sign in</Link><Button onClick={() => navigate('/login')}>Get started <ArrowRight size={16} /></Button></div>
     </nav>
 
     <main>
-      <section className="landing-hero-v2">
-        <div className="hero-copy-v2">
-          <Badge tone="soft"><Sparkles size={14} /> Smart hostel operations</Badge>
-          <h1>Run the hostel.<br /><em>Care for the people.</em></h1>
-          <p>SmartStay brings rooms, attendance, complaints, leave, visitors and daily operations into one focused workspace for students and wardens.</p>
-          <div className="hero-actions-v2">
-            <Button onClick={() => navigate('/login')}>Enter SmartStay <ArrowRight size={16} /></Button>
-            <Link to="/signup" className="outline-action">Create student account</Link>
+      <section className="landing-hero-v3">
+        <div className="hero-copy-v3">
+          <div className="hero-kicker-v3"><span className="live-pill"><i /> Live hostel operations</span><span>Built for students + wardens</span></div>
+          <h1>One place to run<br /><span>every hostel day.</span></h1>
+          <p>SmartStay connects rooms, attendance, complaints, leave, visitors and payments into a single, calm workspace.</p>
+          <div className="hero-actions-v3">
+            <Button onClick={() => navigate('/login')}>Explore SmartStay <ArrowRight size={16} /></Button>
+            <Link to="/signup" className="hero-text-link">Create student account</Link>
           </div>
-          <div className="hero-metrics">
-            <div><strong>1</strong><span>connected workspace</span></div>
-            <div><strong>24/7</strong><span>hostel visibility</span></div>
-            <div><strong>AI</strong><span>ready for smarter insights</span></div>
-          </div>
+          <div className="trust-row-v3"><span><Check size={14} /> Faster daily operations</span><span><Check size={14} /> Real-time status</span><span><Check size={14} /> AI-ready foundation</span></div>
         </div>
 
-        <div className="hero-preview-v2">
-          <div className="preview-glow" />
-          <div className="preview-window">
-            <div className="preview-topbar"><span className="preview-dot" /><span className="preview-dot" /><span className="preview-dot" /><small>SmartStay workspace</small></div>
-            <div className="preview-content">
-              <div className="preview-sidebar">
+        <div className="hero-dashboard-v3">
+          <div className="hero-orb orb-one" /><div className="hero-orb orb-two" />
+          <div className="mock-app-v3">
+            <div className="mock-top-v3">
+              <div className="mock-window-dots"><i /><i /><i /></div>
+              <span>SmartStay / Student workspace</span>
+              <div className="mock-user">CP</div>
+            </div>
+            <div className="mock-body-v3">
+              <aside className="mock-side-v3">
                 <strong>smartstay</strong>
-                <span className="active">Overview</span>
-                <span>My stay</span>
-                <span>Requests</span>
-                <span>Payments</span>
-              </div>
-              <div className="preview-main">
-                <div className="preview-heading"><div><small>STUDENT WORKSPACE</small><h3>Good morning, Cherishma</h3></div><span className="preview-avatar">CP</span></div>
-                <div className="preview-stat-grid">
-                  <div className="preview-stat"><span>Attendance</span><strong>92.4%</strong><i><b style={{ width: '92%' }} /></i></div>
-                  <div className="preview-stat"><span>Room</span><strong>B-204</strong><small>Active allocation</small></div>
-                  <div className="preview-stat"><span>Open requests</span><strong>03</strong><small>1 needs attention</small></div>
+                <small>STUDENT</small>
+                <span className="mock-active"><LayoutDashboard size={13} /> Overview</span>
+                <span><BedDouble size={13} /> My room</span>
+                <span><ClipboardCheck size={13} /> Attendance</span>
+                <span><MessageSquare size={13} /> Complaints</span>
+                <span><CalendarDays size={13} /> Leave</span>
+                <div className="mock-side-bottom"><Sparkles size={13} /> AI insights</div>
+              </aside>
+              <div className="mock-main-v3">
+                <div className="mock-greeting"><div><small>MONDAY · SMARTSTAY</small><h3>Good morning, Cherishma <span>👋</span></h3></div><span className="mock-avatar-v3">CP</span></div>
+                <div className="mock-stats-v3">
+                  <div><small>Attendance</small><strong>92.4%</strong><span className="mini-progress"><b style={{ width: '92%' }} /></span><em>+2.4% this month</em></div>
+                  <div><small>My room</small><strong>B-204</strong><em>2 / 2 beds occupied</em></div>
+                  <div><small>Open requests</small><strong>03</strong><em>1 needs attention</em></div>
                 </div>
-                <div className="preview-lower">
-                  <div className="preview-card wide"><div className="preview-card-head"><span>Attendance overview</span><small>This month</small></div><div className="preview-chart"><i style={{ height: '42%' }} /><i style={{ height: '64%' }} /><i style={{ height: '51%' }} /><i style={{ height: '78%' }} /><i style={{ height: '69%' }} /><i style={{ height: '88%' }} /><i style={{ height: '80%' }} /></div></div>
-                  <div className="preview-card"><div className="preview-card-head"><span>Latest update</span><Bell size={13} /></div><strong>AC maintenance</strong><small>Request is now in progress</small><Badge tone="mint">IN PROGRESS</Badge></div>
+                <div className="mock-grid-v3">
+                  <div className="mock-card-v3 chart-card-v3">
+                    <div className="mock-card-head-v3"><span>Attendance overview</span><small>Last 7 days</small></div>
+                    <div className="mock-chart-v3">{[45,63,54,76,62,88,78].map((h,i)=><i key={i} style={{height: `${h}%`}} />)}</div>
+                    <div className="mock-axis-v3"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+                  </div>
+                  <div className="mock-card-v3 activity-card-v3">
+                    <div className="mock-card-head-v3"><span>Latest activity</span><Bell size={13} /></div>
+                    <div className="mock-activity-v3"><span className="activity-icon"><MessageSquare size={12} /></span><div><strong>CMP-0004</strong><small>AC repair request</small></div><Badge tone="mint">IN PROGRESS</Badge></div>
+                    <div className="mock-activity-v3"><span className="activity-icon blue"><CalendarDays size={12} /></span><div><strong>Leave request</strong><small>Sep 18 – Sep 20</small></div><Badge tone="amber">PENDING</Badge></div>
+                    <div className="mock-activity-v3"><span className="activity-icon purple"><Bell size={12} /></span><div><strong>Announcement</strong><small>Block B inspection</small></div><Badge tone="soft">NEW</Badge></div>
+                  </div>
                 </div>
+                <div className="mock-shortcuts-v3">{cards.map(([Icon,title,copy])=>{const CardIcon=Icon as typeof Activity;return <div key={String(title)}><span><CardIcon size={14}/></span><div><strong>{String(title)}</strong><small>{String(copy)}</small></div><ArrowRight size={13}/></div>})}</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="features" className="section landing-section-v2">
-        <div className="section-heading-v2"><Badge>ONE HOSTEL. ONE VIEW.</Badge><h2>Everything important,<br /><em>finally connected.</em></h2><p>Designed to reduce manual work for wardens and make everyday hostel information easier for students to understand.</p></div>
-        <div className="feature-grid feature-grid-v2">{featureItems.map(([Icon, title, copy], i) => { const FeatureIcon = Icon as typeof Activity; return <div className="feature feature-v2" key={String(title)}><div className="feature-topline"><span className="feature-index">0{i + 1}</span><span className="feature-icon"><FeatureIcon size={18} /></span></div><h3>{String(title)}</h3><p>{String(copy)}</p><ArrowRight size={16} /></div> })}</div>
+      <section id="features" className="section landing-section-v3">
+        <div className="section-heading-v3"><span className="section-kicker">THE SMARTSTAY PLATFORM</span><h2>Everything your hostel team needs,<br /><em>in one operating layer.</em></h2><p>Designed around the workflows that students use every day and the information wardens need to act quickly.</p></div>
+        <div className="feature-grid feature-grid-v3">{cards.concat([[WalletCards,'Payments & records','Keep fees, records and updates together.'],[Sparkles,'Analytics & AI','Turn hostel data into useful decisions.']]).map(([Icon,title,copy],i)=>{const FeatureIcon=Icon as typeof Activity;return <div className="feature feature-v3" key={String(title)}><div className="feature-top-v3"><span>0{i+1}</span><span className="feature-icon"><FeatureIcon size={18}/></span></div><h3>{String(title)}</h3><p>{String(copy)}</p><ArrowRight size={15}/></div>})}</div>
       </section>
 
-      <section id="flow" className="flow-band flow-band-v2">
-        <div className="section-heading-v2"><Badge tone="dark">HOW SMARTSTAY WORKS</Badge><h2>From hostel routine to<br /><em>one calm workflow.</em></h2></div>
-        <div className="flow flow-v2">
-          {[
-            ['01','Capture','Student requests, attendance and room activity enter one system.'],
-            ['02','Coordinate','Wardens see what needs attention and who owns the next step.'],
-            ['03','Resolve','Updates move through visible statuses instead of getting lost in chats.'],
-            ['04','Learn','Data becomes the foundation for analytics and AI-assisted decisions.']
-          ].map(([num,title,copy]) => <div key={num}><span>{num}</span><strong>{title}</strong><small>{copy}</small></div>)}
-        </div>
+      <section id="flow" className="flow-band flow-band-v3">
+        <div className="section-heading-v3 light-heading"><span className="section-kicker">HOW IT WORKS</span><h2>From request to resolution,<br /><em>without the chaos.</em></h2></div>
+        <div className="flow flow-v3">{[['01','Capture','Requests, attendance and room data enter one workspace.'],['02','Coordinate','Wardens see priorities, ownership and status at a glance.'],['03','Resolve','Every update stays visible until the work is complete.'],['04','Learn','Analytics and AI can turn history into smarter action.']].map(([n,t,d])=><div key={n}><span>{n}</span><strong>{t}</strong><small>{d}</small></div>)}</div>
       </section>
 
-      <section id="benefits" className="benefits section benefits-v2">
-        <div><Badge tone="soft">BUILT FOR CAMPUS LIFE</Badge><h2>Less chasing.<br /><em>More belonging.</em></h2><p>SmartStay keeps students informed and gives hostel teams the context they need to act faster, with less friction.</p><Button onClick={() => navigate('/login')}>Step inside SmartStay <ArrowRight size={16} /></Button></div>
-        <div className="benefit-list benefit-list-v2">{['Centralized records','Faster complaint handling','Clear room & attendance visibility','Real-time request status','AI-ready operational data'].map((item, i) => <div key={item}><span>0{i + 1}</span><strong>{item}</strong><Check size={17} /></div>)}</div>
+      <section id="benefits" className="benefits section benefits-v3">
+        <div><span className="section-kicker">MADE FOR CAMPUS LIFE</span><h2>Less admin noise.<br /><em>More time for people.</em></h2><p>SmartStay gives students clarity and gives hostel teams a single source of truth for daily operations.</p><Button onClick={() => navigate('/login')}>Enter the workspace <ArrowRight size={16} /></Button></div>
+        <div className="benefit-list benefit-list-v3">{['One source of truth','Faster issue resolution','Clear room & attendance visibility','Better communication','AI-ready hostel data'].map((x,i)=><div key={x}><span>0{i+1}</span><strong>{x}</strong><Check size={16}/></div>)}</div>
       </section>
     </main>
 
-    <footer className="landing-footer-v2"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link><span>Thoughtful infrastructure for campus life.</span><span>© 2026 SmartStay</span></footer>
+    <footer className="landing-footer-v3"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link><span>Hostel operations, made human.</span><span>© 2026 SmartStay</span></footer>
   </div>
 }
 
