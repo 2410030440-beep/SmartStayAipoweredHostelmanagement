@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertCircle, ArrowRight, BedDouble, Bell, Building2, CalendarDays, Check, ClipboardCheck, DoorOpen, FileText, Home, LayoutDashboard, Menu, MessageSquare, MoreHorizontal, Plus, Search, Settings, ShieldCheck, Sparkles, Stethoscope, UserRound, Users, Utensils, WalletCards, X } from 'lucide-react'
 import { announcements, leaveRequests, maintenance, menu, rooms, visitors, type Role } from './data'
-import { attendanceService, complaintService, getCurrentUser, loginUser, logoutUser, roomService, studentDashboardService, studentService, type AttendanceRecord, type AttendanceSummary, type Complaint, type ComplaintCategory, type ComplaintPriority, type ComplaintStatus, type Student } from './services'
+import { attendanceService, complaintService, getCurrentUser, loginUser, logoutUser, messFeedbackService, roomService, studentDashboardService, studentService, type AttendanceRecord, type AttendanceSummary, type Complaint, type ComplaintCategory, type ComplaintPriority, type ComplaintStatus, type MessFeedback, type MessMeal, type Student } from './services'
 import StudentManagement from './StudentManagement'
 import RoomManagement from './RoomManagement'
 import Signup from './Signup.tsx'
@@ -259,7 +259,55 @@ function AttendancePage() {
   </>
 }
 
-function MessPage() { const [feedback, setFeedback] = useState(false); return <><PageHeader eyebrow="FUEL FOR YOUR DAY" title="Mess management" copy="See what’s cooking and let the team know how it felt." action={<Button onClick={() => setFeedback(!feedback)}><MessageSquare size={17} /> Give feedback</Button>} /><section className="menu-highlight"><div><span className="eyebrow">TODAY · WEDNESDAY</span><h2>Comfort food, with a little <em>crunch.</em></h2><p>Fresh, balanced meals planned by the campus mess team.</p></div><Utensils size={72} strokeWidth={1.2} /></section><section className="panel"><div className="panel-heading"><div><span className="eyebrow">WEEKLY MENU</span><h2>What’s on the table</h2></div></div><div className="menu-table"><div className="menu-head"><span>Day</span><span>Breakfast</span><span>Lunch</span><span>Snacks</span><span>Dinner</span></div>{menu.map((day) => <div className="menu-row" key={day.day}><strong>{day.day}</strong>{day.meals.map((meal) => <span key={meal}>{meal}</span>)}</div>)}</div></section>{feedback && <div className="inline-feedback"><Check size={17} /> Thanks for helping improve the mess experience. <button onClick={() => setFeedback(false)}><X size={15} /></button></div>}</> }
+function MessPage() {
+  const [items, setItems] = useState<MessFeedback[]>([])
+  const [open, setOpen] = useState(false)
+  const [meal, setMeal] = useState<MessMeal>('LUNCH')
+  const [rating, setRating] = useState(5)
+  const [comment, setComment] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const loadFeedback = () => {
+    setLoading(true)
+    messFeedbackService.getMy().then(setItems).catch((e) => setError(e instanceof Error ? e.message : 'Unable to load feedback.')).finally(() => setLoading(false))
+  }
+
+  useEffect(() => { loadFeedback() }, [])
+
+  const submitFeedback = async () => {
+    setSaving(true)
+    setError('')
+    try {
+      await messFeedbackService.create({ meal, rating, comment })
+      setComment('')
+      setRating(5)
+      setOpen(false)
+      loadFeedback()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Unable to submit feedback.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return <><PageHeader eyebrow="FUEL FOR YOUR DAY" title="Mess management" copy="See what’s cooking and let the team know how it felt." action={<Button onClick={() => setOpen(true)}><MessageSquare size={17} /> Give feedback</Button>} />
+    <section className="menu-highlight"><div><span className="eyebrow">TODAY · WEDNESDAY</span><h2>Comfort food, with a little <em>crunch.</em></h2><p>Fresh, balanced meals planned by the campus mess team.</p></div><Utensils size={72} strokeWidth={1.2} /></section>
+    <section className="panel"><div className="panel-heading"><div><span className="eyebrow">WEEKLY MENU</span><h2>What’s on the table</h2></div></div><div className="menu-table"><div className="menu-head"><span>Day</span><span>Breakfast</span><span>Lunch</span><span>Snacks</span><span>Dinner</span></div>{menu.map((day) => <div className="menu-row" key={day.day}><strong>{day.day}</strong>{day.meals.map((meal) => <span key={meal}>{meal}</span>)}</div>)}</div></section>
+    {error && <div className="room-error"><span>{error}</span><button onClick={() => setError('')}><X size={15} /></button></div>}
+    <section className="panel"><div className="panel-heading"><div><span className="eyebrow">YOUR FEEDBACK</span><h2>Mess feedback history</h2></div><Badge tone="soft">{loading ? 'Loading...' : `${items.length} submitted`}</Badge></div>
+      {items.length === 0 && !loading ? <div className="empty-state"><span className="spark"><MessageSquare size={20} /></span><h2>No feedback yet.</h2><p>Tell the mess team how today's meal was.</p></div> :
+      <div className="feedback-list">{items.map((item) => <div className="feedback-row" key={item.id}><div><strong>{item.meal}</strong><small>{new Date(item.created_at).toLocaleDateString()}{item.comment ? ` · ${item.comment}` : ''}</small></div><span className="feedback-stars">{'★'.repeat(item.rating)}{'☆'.repeat(5-item.rating)}</span><Badge tone={item.reviewed ? 'mint' : 'amber'}>{item.reviewed ? 'Reviewed' : 'Pending'}</Badge></div>)}</div>}
+    </section>
+    {open && <Modal title="Give mess feedback" close={() => setOpen(false)}>
+      <label>Meal<select value={meal} onChange={(e) => setMeal(e.target.value as MessMeal)}><option value="BREAKFAST">Breakfast</option><option value="LUNCH">Lunch</option><option value="SNACKS">Snacks</option><option value="DINNER">Dinner</option></select></label>
+      <label>Rating<select value={rating} onChange={(e) => setRating(Number(e.target.value))}><option value="5">5 — Excellent</option><option value="4">4 — Good</option><option value="3">3 — Average</option><option value="2">2 — Poor</option><option value="1">1 — Very poor</option></select></label>
+      <label>Comment<textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Tell the mess team what went well or what could improve..." /></label>
+      <Button onClick={submitFeedback}>{saving ? 'Submitting...' : 'Submit feedback'} <ArrowRight size={15} /></Button>
+    </Modal>}
+  </>
+}
 function LeavePage() { const [open, setOpen] = useState(false); return <><PageHeader eyebrow="PLAN AHEAD" title="Leave requests" copy="Request time away and keep your plans in view." action={<Button onClick={() => setOpen(true)}><Plus size={17} /> Request leave</Button>} /><section className="panel"><div className="panel-heading"><div><span className="eyebrow">YOUR REQUESTS</span><h2>Leave history</h2></div><Badge tone="soft">1 pending</Badge></div><div className="request-list">{leaveRequests.map((request) => <div className="request-row" key={request.id}><span className="calendar-tile"><CalendarDays size={18} /></span><div><strong>{request.type}</strong><small>{request.from} - {request.to} · {request.reason}</small></div><Badge tone={request.status === 'Approved' ? 'mint' : request.status === 'Pending' ? 'amber' : 'coral'}>{request.status}</Badge><MoreHorizontal size={18} /></div>)}</div></section>{open && <Modal title="Request leave" close={() => setOpen(false)}><label>Leave type<select><option>Personal leave</option><option>Medical leave</option><option>Weekend leave</option></select></label><div className="form-grid"><label>From date<input type="date" /></label><label>To date<input type="date" /></label></div><label>Reason<textarea placeholder="Reason for your leave" /></label><Button onClick={() => setOpen(false)}>Send for review <ArrowRight size={15} /></Button></Modal>}</> }
 function VisitorsPage() { const [open, setOpen] = useState(false); return <><PageHeader eyebrow="WELCOME VISITORS" title="Visitors" copy="Register guests before they arrive at the hostel." action={<Button onClick={() => setOpen(true)}><Plus size={17} /> Register visitor</Button>} /><section className="panel"><div className="toolbar"><div><span className="eyebrow">UPCOMING & RECENT</span><h2>Visitor log</h2></div><SearchInput placeholder="Search visitors" /></div><div className="visitor-grid">{visitors.map((v) => <div className="visitor-card" key={v.name}><span className="visitor-avatar">{v.name.split(' ').map((x) => x[0]).join('')}</span><div><strong>{v.name}</strong><small>{v.relation} · {v.date} at {v.time}</small></div><Badge tone={v.status === 'Expected' ? 'blue' : 'neutral'}>{v.status}</Badge></div>)}</div></section>{open && <Modal title="Register a visitor" close={() => setOpen(false)}><label>Visitor name<input placeholder="Full name" /></label><label>Relationship<input placeholder="e.g. Parent, friend" /></label><div className="form-grid"><label>Date<input type="date" /></label><label>Expected time<input type="time" /></label></div><Button onClick={() => setOpen(false)}>Register visitor <ArrowRight size={15} /></Button></Modal>}</> }
 function PaymentsPage() { return <><PageHeader eyebrow="CLEAR & SIMPLE" title="Payments" copy="Your hostel fee summary and payment history." action={<Button variant="secondary"><FileText size={17} /> Download statement</Button>} /><div className="payment-summary"><div><span className="eyebrow">TOTAL HOSTEL FEE</span><strong>₹ 84,000</strong><small>Academic year 2026-27</small></div><div><span className="eyebrow">PAID</span><strong className="green-text">₹ 56,000</strong><small>2 installments completed</small></div><div><span className="eyebrow">PENDING</span><strong className="coral-text">₹ 28,000</strong><small>Next due Oct 15, 2026</small></div></div><section className="panel"><div className="panel-heading"><div><span className="eyebrow">TRANSACTION HISTORY</span><h2>Payment history</h2></div></div><div className="table-wrap"><table><thead><tr><th>Reference</th><th>Date</th><th>Purpose</th><th>Amount</th><th>Status</th></tr></thead><tbody>{[['PAY-2081', 'Sep 02, 2026', 'Hostel fee · Installment 2', '₹ 28,000'], ['PAY-1942', 'Jun 04, 2026', 'Hostel fee · Installment 1', '₹ 28,000'], ['PAY-1720', 'May 30, 2026', 'Security deposit', '₹ 10,000']].map((x) => <tr key={x[0]}><td><strong>{x[0]}</strong></td><td>{x[1]}</td><td>{x[2]}</td><td><strong>{x[3]}</strong></td><td><Badge tone="mint">Paid</Badge></td></tr>)}</tbody></table></div></section></> }
@@ -270,7 +318,41 @@ function AdminPage({ path }: { path: string }) {
   if (key === 'students') return <StudentManagement mode="admin" />
   if (key === 'rooms') return <RoomManagement mode="admin" />
   if (key === 'complaints') return <ComplaintPage mode="admin" />
+  if (key === 'mess') return <AdminMessPage />
   return <><PageHeader eyebrow="WARDEN WORKSPACE" title={key.charAt(0).toUpperCase() + key.slice(1)} copy="A prepared operations view for your hostel team." action={<Button><Plus size={17} /> New action</Button>} /><section className="panel admin-table"><div className="toolbar"><SearchInput placeholder="Search this workspace" /><Badge tone="soft">Mock data</Badge></div>{key === 'allocations' ? <DataTable headers={['Room', 'Block', 'Type', 'Occupants', 'Status']} rows={rooms.map((x) => [x.room, x.block, x.type, x.occupants, x.status])} /> : key === 'maintenance' ? <DataTable headers={['Asset', 'Location', 'Last maintenance', 'Complaints', 'Status']} rows={maintenance.map((x) => [x.asset, x.location, x.last, String(x.complaints), x.status])} /> : <div className="empty-state"><span className="spark"><Settings size={20} /></span><h2>Clearer operations start here.</h2><p>This module is ready for local mock interactions and future FastAPI service integration.</p></div>}</section></>
+}
+
+function AdminMessPage() {
+  const [items, setItems] = useState<MessFeedback[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const loadFeedback = () => {
+    setLoading(true)
+    messFeedbackService.getAll().then(setItems).catch((e) => setError(e instanceof Error ? e.message : 'Unable to load feedback.')).finally(() => setLoading(false))
+  }
+
+  useEffect(() => { loadFeedback() }, [])
+
+  const toggleReviewed = async (item: MessFeedback) => {
+    try {
+      const updated = await messFeedbackService.update(item.id, !item.reviewed)
+      setItems((current) => current.map((entry) => entry.id === updated.id ? updated : entry))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Unable to update feedback.')
+    }
+  }
+
+  const average = items.length ? (items.reduce((sum, item) => sum + item.rating, 0) / items.length).toFixed(1) : '—'
+
+  return <><PageHeader eyebrow="MESS OPERATIONS" title="Mess feedback" copy="Review student ratings and use their comments to improve meals." />
+    {error && <div className="room-error"><span>{error}</span><button onClick={() => setError('')}><X size={15} /></button></div>}
+    <div className="stats-grid"><StatCard label="Average rating" value={average === '—' ? average : `${average}/5`} note="Across submitted feedback" tone="mint" icon={Utensils} /><StatCard label="Responses" value={String(items.length)} note="Student submissions" tone="blue" icon={MessageSquare} /><StatCard label="Pending review" value={String(items.filter((item) => !item.reviewed).length)} note="Needs attention" tone="amber" icon={AlertCircle} /></div>
+    <section className="panel"><div className="panel-heading"><div><span className="eyebrow">STUDENT FEEDBACK</span><h2>Recent responses</h2></div>{loading && <Badge tone="soft">Loading...</Badge>}</div>
+      {items.length === 0 && !loading ? <div className="empty-state"><span className="spark"><MessageSquare size={20} /></span><h2>No feedback submitted.</h2><p>Student mess feedback will appear here.</p></div> :
+      <div className="table-wrap"><table><thead><tr><th>Meal</th><th>Rating</th><th>Comment</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>{items.map((item) => <tr key={item.id}><td><strong>{item.meal}</strong></td><td><span className="feedback-stars">{'★'.repeat(item.rating)}{'☆'.repeat(5-item.rating)}</span></td><td>{item.comment || '—'}</td><td>{new Date(item.created_at).toLocaleDateString()}</td><td><Badge tone={item.reviewed ? 'mint' : 'amber'}>{item.reviewed ? 'Reviewed' : 'Pending'}</Badge></td><td><Button variant="secondary" onClick={() => toggleReviewed(item)}>{item.reviewed ? 'Mark pending' : 'Mark reviewed'}</Button></td></tr>)}</tbody></table></div>}
+    </section>
+  </>
 }
 
 function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) { return <div className="table-wrap"><table><thead><tr>{headers.map((h) => <th key={h}>{h}</th>)}</tr></thead><tbody>{rows.map((row, i) => <tr key={i}>{row.map((cell, j) => <td key={cell}>{j === 0 ? <strong>{cell}</strong> : j === row.length - 1 ? <Badge tone={cell === 'Active' || cell === 'Occupied' || cell === 'Resolved' || cell === 'Healthy' ? 'mint' : 'amber'}>{cell}</Badge> : cell}</td>)}</tr>)}</tbody></table></div> }
