@@ -965,3 +965,12 @@ td strong{color:#29445f}
   .photo-hero-content p{font-size:14px}
   .photo-hero-actions{flex-direction:column;align-items:flex-start}
 }
+
+
+.feedback-list{display:flex;flex-direction:column;gap:0}
+.feedback-row{display:grid;grid-template-columns:1fr auto auto;gap:18px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line,#e9ecef)}
+.feedback-row:last-child{border-bottom:0}
+.feedback-row strong{display:block}
+.feedback-row small{display:block;margin-top:5px;color:#7a7f87}
+.feedback-stars{letter-spacing:2px;font-weight:700}
+@media(max-width:760px){.feedback-row{grid-template-columns:1fr;gap:8px}}
