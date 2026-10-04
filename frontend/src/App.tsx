@@ -24,7 +24,95 @@ function LandingEntry() { return <div className="landing-entry"><Landing /><div 
 
 function LoginRoute({ expectedRole }: { expectedRole?: 'STUDENT' | 'ADMIN' }) { const location = useLocation(); const message = (location.state as { message?: string } | null)?.message; return <div className="login-route"><Login expectedRole={expectedRole} />{message && <div className="auth-success" role="status">{message}</div>}<div className="login-route-links"><Link className="auth-switch" to="/student-login">Student Login</Link><Link className="auth-switch" to="/admin-login">Admin Login</Link><Link className="auth-switch" to="/signup">Create an account</Link></div></div> }
 
-function Landing() { const navigate = useNavigate(); return <div className="landing"><nav className="landing-nav"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link><div className="landing-links"><a href="#features">Features</a><a href="#flow">How it works</a><a href="#benefits">Benefits</a></div><div className="nav-actions"><Link className="text-button" to="/login">Log in</Link><Button onClick={() => navigate('/login')}>Get started <ArrowRight size={16} /></Button></div></nav><main><section className="hero"><div className="hero-copy"><Badge tone="soft"><Sparkles size={14} /> Built for campus living</Badge><h1>Hostel operations,<br /><em>made human.</em></h1><p>SmartStay brings rooms, people, requests and daily hostel operations into one calm, connected workspace.</p><div className="hero-actions"><Button onClick={() => navigate('/login')}>Explore the platform <ArrowRight size={16} /></Button><a href="#features" className="play-link"><span>▶</span> See what’s inside</a></div><div className="hero-proof"><div className="avatar-stack"><span>AM</span><span>NR</span><span>KS</span><span>+1k</span></div><p><strong>1,248 students</strong><br />already organized</p></div></div><div className="hero-art"><div className="art-grid" /><div className="hero-panel"><div className="mini-top"><span>Today at SmartStay</span><span className="live-dot" /> Live overview</div><div className="occupancy"><div><small>Room occupancy</small><strong>82.4%</strong><span className="up">↑ 4.8%</span></div><div className="ring"><span>82</span></div></div><div className="chart"><span style={{ height: '38%' }} /><span style={{ height: '58%' }} /><span style={{ height: '46%' }} /><span style={{ height: '72%' }} /><span style={{ height: '63%' }} /><span style={{ height: '88%' }} /><span style={{ height: '79%' }} /><span style={{ height: '94%' }} /></div><div className="art-list"><span><i className="dot mint" /> Complaints resolved <strong>24</strong></span><span><i className="dot coral" /> New leave requests <strong>08</strong></span></div></div><div className="floating-note"><Check size={15} /> Everything in one place</div></div></section><section id="features" className="section"><div className="section-heading"><Badge>CORE WORKSPACE</Badge><h2>Less chasing. More <em>belonging.</em></h2><p>Every routine task gets a clearer path, so students feel looked after and teams can focus on the work that matters.</p></div><div className="feature-grid">{[[Building2, 'Smart room management', 'Know every room, bed and allocation at a glance.'], [MessageSquare, 'Complaint management', 'Keep every request visible from first note to resolution.'], [ClipboardCheck, 'Attendance tracking', 'Simple records that make follow-up feel effortless.'], [Utensils, 'Mess management', 'Menus, feedback and meal moments in one place.'], [CalendarDays, 'Leave & visitor management', 'A smoother way to plan arrivals and departures.'], [Sparkles, 'Intelligent insights', 'A prepared foundation for future AI-assisted decisions.']].map(([Icon, title, copy]) => <div className="feature" key={String(title)}><span className="feature-icon">{<Icon size={20} />}</span><h3>{title as string}</h3><p>{copy as string}</p><ArrowRight size={17} /></div>)}</div></section><section id="flow" className="flow-band"><div className="section-heading"><Badge tone="dark">THE SMARTSTAY LOOP</Badge><h2>From a request to a <em>better day.</em></h2></div><div className="flow">{['Students & wardens', 'SmartStay platform', 'Hostel operations', 'Useful insights'].map((x, i) => <div key={x}><span>0{i + 1}</span>{[Users, ShieldCheck, Building2, Activity].map((Icon, j) => i === j && <Icon key={x} size={21} />)}<strong>{x}</strong><small>{['One shared starting point', 'Simple, visible workflows', 'Faster everyday decisions', 'Plan with more confidence'][i]}</small></div>)}</div></section><section id="benefits" className="benefits section"><div><Badge tone="soft">A QUIETER CAMPUS</Badge><h2>Make space for the <em>good stuff.</em></h2><p>SmartStay gives every role the context they need without making anyone learn a complicated system.</p><Button onClick={() => navigate('/login')}>Step inside SmartStay <ArrowRight size={16} /></Button></div><div className="benefit-list">{['Centralized records', 'Faster complaint handling', 'Better monitoring', 'Data-driven planning', 'Real-time updates'].map((item, i) => <div key={item}><span>0{i + 1}</span><strong>{item}</strong><Check size={17} /></div>)}</div></section></main><footer><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link><span>Thoughtful infrastructure for campus life.</span><span>© 2026 SmartStay</span></footer></div> }
+function Landing() {
+  const navigate = useNavigate()
+  const featureItems = [
+    [Building2, 'Room intelligence', 'See beds, allocations and occupancy without spreadsheet chaos.'],
+    [MessageSquare, 'Requests that move', 'Track complaints and service requests from open to resolved.'],
+    [ClipboardCheck, 'Attendance clarity', 'Give students and wardens one reliable attendance view.'],
+    [Utensils, 'Mess made simple', 'Keep menus, meal updates and feedback in one place.'],
+    [CalendarDays, 'Leave & visitor flow', 'Make requests, approvals and arrivals easier to manage.'],
+    [Sparkles, 'AI-ready insights', 'Build a stronger foundation for smarter hostel decisions.'],
+  ]
+  return <div className="landing landing-v2">
+    <nav className="landing-nav">
+      <Link className="brand landing-brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link>
+      <div className="landing-links"><a href="#features">Platform</a><a href="#flow">How it works</a><a href="#benefits">Why SmartStay</a></div>
+      <div className="nav-actions"><Link className="text-button" to="/login">Sign in</Link><Button onClick={() => navigate('/login')}>Open workspace <ArrowRight size={16} /></Button></div>
+    </nav>
+
+    <main>
+      <section className="landing-hero-v2">
+        <div className="hero-copy-v2">
+          <Badge tone="soft"><Sparkles size={14} /> Smart hostel operations</Badge>
+          <h1>Run the hostel.<br /><em>Care for the people.</em></h1>
+          <p>SmartStay brings rooms, attendance, complaints, leave, visitors and daily operations into one focused workspace for students and wardens.</p>
+          <div className="hero-actions-v2">
+            <Button onClick={() => navigate('/login')}>Enter SmartStay <ArrowRight size={16} /></Button>
+            <Link to="/signup" className="outline-action">Create student account</Link>
+          </div>
+          <div className="hero-metrics">
+            <div><strong>1</strong><span>connected workspace</span></div>
+            <div><strong>24/7</strong><span>hostel visibility</span></div>
+            <div><strong>AI</strong><span>ready for smarter insights</span></div>
+          </div>
+        </div>
+
+        <div className="hero-preview-v2">
+          <div className="preview-glow" />
+          <div className="preview-window">
+            <div className="preview-topbar"><span className="preview-dot" /><span className="preview-dot" /><span className="preview-dot" /><small>SmartStay workspace</small></div>
+            <div className="preview-content">
+              <div className="preview-sidebar">
+                <strong>smartstay</strong>
+                <span className="active">Overview</span>
+                <span>My stay</span>
+                <span>Requests</span>
+                <span>Payments</span>
+              </div>
+              <div className="preview-main">
+                <div className="preview-heading"><div><small>STUDENT WORKSPACE</small><h3>Good morning, Cherishma</h3></div><span className="preview-avatar">CP</span></div>
+                <div className="preview-stat-grid">
+                  <div className="preview-stat"><span>Attendance</span><strong>92.4%</strong><i><b style={{ width: '92%' }} /></i></div>
+                  <div className="preview-stat"><span>Room</span><strong>B-204</strong><small>Active allocation</small></div>
+                  <div className="preview-stat"><span>Open requests</span><strong>03</strong><small>1 needs attention</small></div>
+                </div>
+                <div className="preview-lower">
+                  <div className="preview-card wide"><div className="preview-card-head"><span>Attendance overview</span><small>This month</small></div><div className="preview-chart"><i style={{ height: '42%' }} /><i style={{ height: '64%' }} /><i style={{ height: '51%' }} /><i style={{ height: '78%' }} /><i style={{ height: '69%' }} /><i style={{ height: '88%' }} /><i style={{ height: '80%' }} /></div></div>
+                  <div className="preview-card"><div className="preview-card-head"><span>Latest update</span><Bell size={13} /></div><strong>AC maintenance</strong><small>Request is now in progress</small><Badge tone="mint">IN PROGRESS</Badge></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" className="section landing-section-v2">
+        <div className="section-heading-v2"><Badge>ONE HOSTEL. ONE VIEW.</Badge><h2>Everything important,<br /><em>finally connected.</em></h2><p>Designed to reduce manual work for wardens and make everyday hostel information easier for students to understand.</p></div>
+        <div className="feature-grid feature-grid-v2">{featureItems.map(([Icon, title, copy], i) => { const FeatureIcon = Icon as typeof Activity; return <div className="feature feature-v2" key={String(title)}><div className="feature-topline"><span className="feature-index">0{i + 1}</span><span className="feature-icon"><FeatureIcon size={18} /></span></div><h3>{String(title)}</h3><p>{String(copy)}</p><ArrowRight size={16} /></div> })}</div>
+      </section>
+
+      <section id="flow" className="flow-band flow-band-v2">
+        <div className="section-heading-v2"><Badge tone="dark">HOW SMARTSTAY WORKS</Badge><h2>From hostel routine to<br /><em>one calm workflow.</em></h2></div>
+        <div className="flow flow-v2">
+          {[
+            ['01','Capture','Student requests, attendance and room activity enter one system.'],
+            ['02','Coordinate','Wardens see what needs attention and who owns the next step.'],
+            ['03','Resolve','Updates move through visible statuses instead of getting lost in chats.'],
+            ['04','Learn','Data becomes the foundation for analytics and AI-assisted decisions.']
+          ].map(([num,title,copy]) => <div key={num}><span>{num}</span><strong>{title}</strong><small>{copy}</small></div>)}
+        </div>
+      </section>
+
+      <section id="benefits" className="benefits section benefits-v2">
+        <div><Badge tone="soft">BUILT FOR CAMPUS LIFE</Badge><h2>Less chasing.<br /><em>More belonging.</em></h2><p>SmartStay keeps students informed and gives hostel teams the context they need to act faster, with less friction.</p><Button onClick={() => navigate('/login')}>Step inside SmartStay <ArrowRight size={16} /></Button></div>
+        <div className="benefit-list benefit-list-v2">{['Centralized records','Faster complaint handling','Clear room & attendance visibility','Real-time request status','AI-ready operational data'].map((item, i) => <div key={item}><span>0{i + 1}</span><strong>{item}</strong><Check size={17} /></div>)}</div>
+      </section>
+    </main>
+
+    <footer className="landing-footer-v2"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link><span>Thoughtful infrastructure for campus life.</span><span>© 2026 SmartStay</span></footer>
+  </div>
+}
 
 function Login({ expectedRole }: { expectedRole?: 'STUDENT' | 'ADMIN' }) { const navigate = useNavigate(); const location = useLocation(); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [error, setError] = useState(''); const [loading, setLoading] = useState(false); const role = expectedRole ?? (location.pathname === '/admin-login' ? 'ADMIN' : 'STUDENT'); const handleSubmit = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const normalizedEmail = email.trim(); if (!normalizedEmail || !password) { setError('Enter your email and password to continue.'); return } setError(''); setLoading(true); try { const user = await loginUser(normalizedEmail, password); if (user.role !== role) { logoutUser(); setError(role === 'ADMIN' ? 'This account is for student access. Please use Student Login.' : 'This account is for administrator access. Please use Admin Login.'); return } navigate(role === 'ADMIN' ? '/admin' : '/student', { replace: true }) } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Unable to sign in right now. Please try again.') } finally { setLoading(false) } }; return <div className="login-page"><div className="login-art"><Link className="brand" to="/"><span className="brand-mark"><Building2 size={17} /></span> smart<span>stay</span></Link><div><Badge tone="dark">WELCOME TO A BETTER HOSTEL DAY</Badge><h1>Good systems make<br /><em>room for people.</em></h1><p>{role === 'ADMIN' ? 'Sign in to manage your SmartStay hostel workspace.' : 'Sign in to your SmartStay student workspace.'}</p></div><span className="login-art-foot">SmartStay / Campus operations, made clear.</span></div><div className="login-form"><span className="eyebrow">SECURE SIGN IN</span><h2>{role === 'ADMIN' ? 'Admin Login' : 'Student Login'}</h2><p className="muted">{role === 'ADMIN' ? 'Use your administrator account to continue.' : 'Use your student account to continue.'}</p><form className="auth-form" onSubmit={handleSubmit} noValidate><label>Email address<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" placeholder="you@example.com" disabled={loading} /></label><label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" placeholder="Enter your password" disabled={loading} /></label>{error && <p className="auth-error" role="alert">{error}</p>}<button className="button auth-submit" type="submit" disabled={loading}>{loading ? 'Signing in...' : <>Sign in <ArrowRight size={16} /></>}</button></form><div className="login-note"><ShieldCheck size={17} /><span><strong>{role === 'ADMIN' ? 'Administrator access' : 'Student access'}</strong><br />Your role is verified by the SmartStay backend.</span></div></div></div> }
 
