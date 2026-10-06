@@ -134,7 +134,7 @@ function StudentProfilePage() {
   const [openEdit, setOpenEdit] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [form, setForm] = useState({ full_name: '', phone: '', course: '', department: 'Computer Science & Engineering', year: '', gender: '', batch: '2024–2028' })
+  const [form, setForm] = useState({ full_name: '', phone: '', course: '', department: 'Not Provided', year: '', gender: '', batch: 'Not Provided' })
 
   const loadProfile = async () => {
     try {
@@ -280,10 +280,10 @@ function StudentProfilePage() {
           <label>Full Name<input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required /></label>
           <label>Phone Number<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required /></label>
           <label>Course<input value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })} required /></label>
-          <label>Department<input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></label>
+          <label>Department<input value={form.department} disabled /></label>
           <label>Year<select value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })}><option value="">Select year</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option></select></label>
           <label>Gender<select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}><option value="">Select gender</option><option>Female</option><option>Male</option><option>Other</option><option>Prefer not to say</option></select></label>
-          <label>Batch<input value={form.batch} onChange={(e) => setForm({ ...form, batch: e.target.value })} /></label>
+          <label>Batch<input value={form.batch} disabled /></label>
         </div>
         <div className="student-profile-readonly">
           <span><small>Email</small><strong>{profile.email}</strong></span>
