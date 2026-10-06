@@ -114,6 +114,8 @@ export const studentManagementService = {
 	create: (student: StudentInput) => studentRequest<Student>('', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(student) }),
 	update: (studentId: string, student: StudentInput) => studentRequest<Student>(`/${encodeURIComponent(studentId)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(student) }),
 	remove: (studentId: string) => studentRequest<void>(`/${encodeURIComponent(studentId)}`, { method: 'DELETE' }),
+	getProfile: () => studentRequest<Student>('/profile'),
+	updateProfile: (input: Pick<Student, 'full_name' | 'phone' | 'course' | 'year' | 'gender'>) => studentRequest<Student>('/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) }),
 }
 
 export const listRooms = (search = '', status?: RoomStatus) => {
