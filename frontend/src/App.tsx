@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertCircle, ArrowRight, BedDouble, Bell, Building2, CalendarDays, Check, ClipboardCheck, DoorOpen, FileText, Home, LayoutDashboard, Menu, MessageSquare, MoreHorizontal, Plus, Search, Settings, ShieldCheck, Sparkles, Stethoscope, UserRound, Users, Utensils, WalletCards, X } from 'lucide-react'
 import { announcements, leaveRequests, maintenance, menu, rooms, visitors, type Role } from './data'
-import { attendanceService, complaintService, getCurrentUser, loginUser, logoutUser, messFeedbackService, roomService, studentDashboardService, studentService, type AttendanceRecord, type AttendanceSummary, type Complaint, type ComplaintCategory, type ComplaintPriority, type ComplaintStatus, type MessFeedback, type MessMeal, type Student } from './services'
+import { attendanceService, complaintService, getCurrentUser, loginUser, logoutUser, messFeedbackService, roomService, studentDashboardService, studentService, type AttendanceRecord, type AttendanceSummary, type Complaint, type ComplaintCategory, type ComplaintPriority, type ComplaintStatus, type MessFeedback, type MessMeal, type Student, type Room } from './services'
 import StudentManagement from './StudentManagement'
 import RoomManagement from './RoomManagement'
 import Signup from './Signup.tsx'
@@ -126,25 +126,177 @@ function StudentHome() {
 
 function StudentPage({ path }: { path: string }) { const title = path.split('/').pop() ?? ''; if (title === 'profile') return <StudentProfilePage />; if (title === 'record') return <StudentManagement mode="student" />; if (title === 'room') return <RoomManagement mode="student" />; if (title === 'complaints') return <ComplaintPage mode="student" />; if (title === 'attendance') return <AttendancePage />; if (title === 'mess') return <MessPage />; if (title === 'leave') return <LeavePage />; if (title === 'visitors') return <VisitorsPage />; if (title === 'payments') return <PaymentsPage />; if (title === 'notifications') return <NotificationsPage />; return <GenericPage title={title} /> }
 
+
 function StudentProfilePage() {
   const [profile, setProfile] = useState<Student | null>(null)
+  const [room, setRoom] = useState<Room | null>(null)
   const [error, setError] = useState('')
-  useEffect(() => {
-    let cancelled = false
-    studentDashboardService.getProfile()
-      .then((studentProfile) => { if (!cancelled) setProfile(studentProfile) })
-      .catch((requestError) => { if (!cancelled) setError(requestError instanceof Error ? requestError.message : 'Unable to load your profile.') })
-    return () => { cancelled = true }
-  }, [])
-  return <><PageHeader eyebrow="YOUR SMARTSTAY" title="My profile" copy="Your student information from the SmartStay database." />
-    {error && <p className="auth-error" role="alert">{error}</p>}
-    {!profile ? <section className="panel empty-state"><span className="spark"><UserRound size={20} /></span><h2>Loading your profile...</h2><p>We’re securely loading your student record.</p></section> :
-    <section className="room-detail-grid">
-      <section className="panel room-detail-hero"><div className="room-number">{profile.student_id}</div><Badge tone="mint">{profile.status.replace('_', ' ')}</Badge><p>{profile.full_name}</p><div className="room-detail-stats"><span><small>Email</small><strong>{profile.email}</strong></span><span><small>Course</small><strong>{profile.course}</strong></span><span><small>Year</small><strong>{profile.year}</strong></span></div></section>
-      <section className="panel"><div className="panel-heading"><h2>Personal details</h2><UserRound size={19} /></div><div className="facilities"><div><UserRound size={17} />{profile.full_name}</div><div><ShieldCheck size={17} />{profile.email}</div><div><MessageSquare size={17} />{profile.phone}</div><div><Building2 size={17} />{profile.room_number ?? 'No room allocated'}</div><div><FileText size={17} />{profile.gender}</div></div></section>
-    </section>}
+  const [openEdit, setOpenEdit] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [form, setForm] = useState({ full_name: '', phone: '', course: '', department: 'Computer Science & Engineering', year: '', gender: '', batch: '2024–2028' })
+
+  const loadProfile = async () => {
+    try {
+      setError('')
+      const student = await studentService.getProfile()
+      setProfile(student)
+      setForm({
+        full_name: student.full_name,
+        phone: student.phone,
+        course: student.course,
+        department: 'Computer Science & Engineering',
+        year: student.year,
+        gender: student.gender,
+        batch: '2024–2028',
+      })
+      if (student.room_number) {
+        try {
+          setRoom(await roomService.get(student.room_number))
+        } catch {
+          setRoom(null)
+        }
+      } else {
+        setRoom(null)
+      }
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to load your profile.')
+    }
+  }
+
+  useEffect(() => { void loadProfile() }, [])
+
+  const openEditor = () => {
+    if (!profile) return
+    setSaved(false)
+    setForm({
+      full_name: profile.full_name,
+      phone: profile.phone,
+      course: profile.course,
+      department: 'Computer Science & Engineering',
+      year: profile.year,
+      gender: profile.gender,
+      batch: '2024–2028',
+    })
+    setOpenEdit(true)
+  }
+
+  const handleSave = async (event: FormEvent) => {
+    event.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+      const updated = await studentService.updateProfile({
+        full_name: form.full_name,
+        phone: form.phone,
+        course: form.course,
+        year: form.year,
+        gender: form.gender,
+      })
+      setProfile(updated)
+      setOpenEdit(false)
+      setSaved(true)
+      window.setTimeout(() => setSaved(false), 3000)
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to save your profile.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const roomLabel = room?.room_number ?? profile?.room_number ?? 'Not Allocated'
+
+  return <>
+    <PageHeader
+      eyebrow="YOUR SMARTSTAY"
+      title="My profile"
+      copy="Manage your personal and academic information in one place."
+      action={<Button onClick={openEditor}><Settings size={16} /> Edit Profile</Button>}
+    />
+
+    {error && <div className="student-profile-alert" role="alert"><AlertCircle size={16} /> <span>{error}</span><button onClick={() => setError('')}><X size={15} /></button></div>}
+    {saved && <div className="student-profile-success" role="status"><Check size={16} /> Profile updated successfully.</div>}
+
+    {!profile ? (
+      <section className="panel empty-state">
+        <span className="spark"><UserRound size={20} /></span>
+        <h2>Loading your profile...</h2>
+        <p>We’re securely loading your student record.</p>
+      </section>
+    ) : <>
+      <section className="student-profile-hero">
+        <div className="student-profile-avatar">{profile.full_name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</div>
+        <div className="student-profile-identity">
+          <span className="eyebrow">STUDENT PROFILE</span>
+          <h2>{profile.full_name}</h2>
+          <div className="student-profile-meta"><span>Student</span><Badge tone="mint">{profile.status.replace('_', ' ')}</Badge></div>
+        </div>
+        <div className="student-profile-id"><small>STUDENT ID</small><strong>{profile.student_id}</strong></div>
+      </section>
+
+      <div className="student-profile-grid">
+        <section className="panel student-profile-card">
+          <div className="panel-heading"><div><span className="eyebrow">PERSONAL INFORMATION</span><h2>Personal details</h2></div><UserRound size={19} /></div>
+          <div className="student-profile-fields">
+            <div><small>Full Name</small><strong>{profile.full_name}</strong></div>
+            <div><small>Email</small><strong>{profile.email}</strong></div>
+            <div><small>Phone Number</small><strong>{profile.phone || 'Not Provided'}</strong></div>
+            <div><small>Gender</small><strong>{profile.gender || 'Not Provided'}</strong></div>
+          </div>
+        </section>
+
+        <section className="panel student-profile-card">
+          <div className="panel-heading"><div><span className="eyebrow">ACADEMIC INFORMATION</span><h2>Academic details</h2></div><FileText size={19} /></div>
+          <div className="student-profile-fields">
+            <div><small>Student ID</small><strong>{profile.student_id}</strong></div>
+            <div><small>Course</small><strong>{profile.course || 'Not Provided'}</strong></div>
+            <div><small>Department</small><strong>{form.department}</strong></div>
+            <div><small>Year</small><strong>{profile.year || 'Not Provided'}</strong></div>
+            <div><small>Batch</small><strong>{form.batch}</strong></div>
+          </div>
+        </section>
+
+        <section className="panel student-profile-card student-profile-hostel">
+          <div className="panel-heading"><div><span className="eyebrow">HOSTEL INFORMATION</span><h2>Room allocation</h2></div><BedDouble size={19} /></div>
+          <div className="student-profile-room-status">
+            <span>Allocation status</span>
+            <Badge tone={profile.room_number ? 'mint' : 'amber'}>{profile.room_number ? 'Allocated' : 'Pending Allocation'}</Badge>
+          </div>
+          <div className="student-profile-fields student-profile-room-fields">
+            <div><small>Room Number</small><strong>{roomLabel}</strong></div>
+            <div><small>Block</small><strong>{room?.block ?? 'Not Allocated'}</strong></div>
+            <div><small>Room Type</small><strong>{room?.room_type ?? 'Not Allocated'}</strong></div>
+            <div><small>Floor</small><strong>{room ? String(room.floor) : 'Not Allocated'}</strong></div>
+            <div><small>Occupancy</small><strong>{room ? `${room.occupied_beds} / ${room.capacity} beds` : 'Not Allocated'}</strong></div>
+          </div>
+          <p className="student-profile-note">Hostel and room allocation details are managed by the warden.</p>
+        </section>
+      </div>
+    </>}
+
+    {openEdit && profile && <Modal title="Edit Profile" close={() => !saving && setOpenEdit(false)}>
+      <form className="student-profile-form" onSubmit={handleSave}>
+        <div className="student-profile-form-grid">
+          <label>Full Name<input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required /></label>
+          <label>Phone Number<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required /></label>
+          <label>Course<input value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })} required /></label>
+          <label>Department<input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></label>
+          <label>Year<select value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })}><option value="">Select year</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option></select></label>
+          <label>Gender<select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}><option value="">Select gender</option><option>Female</option><option>Male</option><option>Other</option><option>Prefer not to say</option></select></label>
+          <label>Batch<input value={form.batch} onChange={(e) => setForm({ ...form, batch: e.target.value })} /></label>
+        </div>
+        <div className="student-profile-readonly">
+          <span><small>Email</small><strong>{profile.email}</strong></span>
+          <span><small>Student ID</small><strong>{profile.student_id}</strong></span>
+        </div>
+        <p className="student-profile-edit-note">Email, Student ID, account status and room allocation cannot be changed from the student profile.</p>
+        <div className="student-profile-form-actions"><Button variant="secondary" onClick={() => setOpenEdit(false)}>Cancel</Button><Button>{saving ? 'Saving...' : 'Save Changes'}</Button></div>
+      </form>
+    </Modal>}
   </>
 }
+
+
 function ComplaintPage({ mode = 'student' }: { mode?: 'student' | 'admin' }) {
   const [items, setItems] = useState<Complaint[]>([])
   const [filter, setFilter] = useState<'All' | ComplaintStatus>('All')
