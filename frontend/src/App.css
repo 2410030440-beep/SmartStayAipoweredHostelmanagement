@@ -974,3 +974,52 @@ td strong{color:#29445f}
 .feedback-row small{display:block;margin-top:5px;color:#7a7f87}
 .feedback-stars{letter-spacing:2px;font-weight:700}
 @media(max-width:760px){.feedback-row{grid-template-columns:1fr;gap:8px}}
+
+
+/* Student profile workspace */
+.student-profile-alert,.student-profile-success{display:flex;align-items:center;gap:9px;padding:11px 14px;border-radius:10px;margin:-10px 0 17px;font-size:12px}
+.student-profile-alert{background:#fff0f0;color:#b42318;border:1px solid #ffd5d5}
+.student-profile-alert button{margin-left:auto;background:none;color:inherit}
+.student-profile-success{background:#eaf8f1;color:#087443;border:1px solid #cceedd}
+.student-profile-hero{display:flex;align-items:center;gap:18px;padding:22px 24px;margin-bottom:17px;background:#fff;border:1px solid #dce7f2;border-radius:14px;box-shadow:0 8px 26px rgba(37,99,235,.045)}
+.student-profile-avatar{width:66px;height:66px;display:grid;place-items:center;border-radius:18px;background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#1d4ed8;font-size:20px;font-weight:800}
+.student-profile-identity{flex:1;min-width:0}
+.student-profile-identity h2{margin:5px 0 7px;font-size:25px;letter-spacing:-.04em;color:#17324e}
+.student-profile-meta{display:flex;align-items:center;gap:9px;color:#71879c;font-size:11px}
+.student-profile-id{padding-left:24px;border-left:1px solid #e3ebf3;display:grid;gap:5px;text-align:right}
+.student-profile-id small{color:#8ca0b3;font-size:8px;font-weight:800;letter-spacing:.1em}
+.student-profile-id strong{color:#24415e;font-size:13px}
+.student-profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:17px}
+.student-profile-card{min-height:220px}
+.student-profile-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.student-profile-fields>div{padding:12px;border:1px solid #e7eef5;border-radius:10px;background:#fbfdff;min-width:0}
+.student-profile-fields small{display:block;color:#8a9bad;font-size:9px;margin-bottom:5px}
+.student-profile-fields strong{display:block;color:#29445f;font-size:11px;word-break:break-word}
+.student-profile-hostel{grid-column:1/-1}
+.student-profile-room-status{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-radius:9px;background:#f7fbff;border:1px solid #e8f0f7;margin-bottom:12px}
+.student-profile-room-status span{font-size:9px;color:#8194a8}
+.student-profile-room-fields{grid-template-columns:repeat(5,1fr)}
+.student-profile-note,.student-profile-edit-note{color:#8295a8;font-size:9px;line-height:1.6;margin:12px 0 0}
+.student-profile-form{display:grid;gap:17px}
+.student-profile-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.student-profile-form label{display:grid;gap:6px;color:#6e8296;font-size:10px;font-weight:700}
+.student-profile-form input,.student-profile-form select{width:100%;padding:10px 11px;border:1px solid #d9e5f0;border-radius:8px;background:#fbfdff;color:#29445f;outline:none;font-size:12px}
+.student-profile-form input:focus,.student-profile-form select:focus{border-color:#8bb7eb;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.student-profile-readonly{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:12px;border-radius:9px;background:#f6f9fc;border:1px solid #e5edf4}
+.student-profile-readonly span{display:grid;gap:4px}
+.student-profile-readonly small{color:#8a9bad;font-size:8px}
+.student-profile-readonly strong{color:#526b86;font-size:10px;word-break:break-word}
+.student-profile-form-actions{display:flex;justify-content:flex-end;gap:8px}
+@media(max-width:850px){
+  .student-profile-grid{grid-template-columns:1fr}
+  .student-profile-hostel{grid-column:auto}
+  .student-profile-room-fields{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .student-profile-hero{align-items:flex-start;flex-wrap:wrap}
+  .student-profile-id{width:100%;padding:12px 0 0;border-left:0;border-top:1px solid #e3ebf3;text-align:left}
+  .student-profile-fields,.student-profile-form-grid,.student-profile-readonly{grid-template-columns:1fr}
+  .student-profile-room-fields{grid-template-columns:1fr}
+  .student-profile-form-actions{justify-content:stretch}
+  .student-profile-form-actions .button{flex:1}
+}
