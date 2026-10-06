@@ -19,6 +19,7 @@ from app.models.payment import Payment, PaymentMethod, PaymentStatus
 from app.models.demo_payment import DemoPayment
 from app.models.fee_configuration import FeeConfiguration
 from app.models.payment_audit import PaymentAudit
+from app.models.notification import Notification, NotificationType
 
 __all__ = [
     "Announcement",
@@ -58,4 +59,6 @@ __all__ = [
     "DemoPayment",
     "FeeConfiguration",
     "PaymentAudit",
+    "Notification",
+    "NotificationType",
 ]

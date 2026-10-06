@@ -29,8 +29,9 @@ def create_feedback(
 ) -> MessFeedback:
     feedback = MessFeedback(
         student_id=student_id,
-        meal=data.meal,
+        meal=data.meal.value,
         rating=data.rating,
+        feedback=data.comment.strip() if data.comment else "",
         comment=data.comment.strip() if data.comment else None,
     )
     db.add(feedback)

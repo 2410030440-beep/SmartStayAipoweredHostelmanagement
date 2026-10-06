@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.security import get_current_user, require_admin
 from app.database.connection import get_db
 from app.models.user import User, UserRole
+from app.models.notification import NotificationType
 from app.models.visitor import Visitor, VisitorStatus
 from app.schemas.visitor import VisitorCreate, VisitorDecision, VisitorResponse
 from app.services.visitor_service import (
@@ -19,6 +20,7 @@ from app.services.visitor_service import (
     list_my_visitors,
     list_visitors,
 )
+from app.services.notification_service import admin_user_ids, emit_notifications, student_user_id
 
 router = APIRouter(prefix="/api/visitors", tags=["Visitors"])
 
@@ -47,7 +49,17 @@ def create_visitor_request(
     current_user: User = Depends(get_current_user),
 ) -> Visitor:
     student = require_student_record(db, current_user)
-    return create_visitor(db, student, visitor_data)
+    visitor = create_visitor(db, student, visitor_data)
+    emit_notifications(
+        db,
+        recipient_user_ids=admin_user_ids(db),
+        title="New visitor request",
+        message=f"{student.full_name} submitted a visitor request for {visitor.visit_date}.",
+        notification_type=NotificationType.VISITOR,
+        event_key=f"visitor:created:{visitor.id}",
+        related_record_id=visitor.id,
+    )
+    return visitor
 
 
 @router.get("/my", response_model=list[VisitorResponse])
@@ -119,7 +131,19 @@ def decide_visitor_request(
     if visitor is None:
         raise visitor_not_found()
     try:
-        return decide_visitor(db, visitor, decision)
+        updated = decide_visitor(db, visitor, decision)
+        recipient = student_user_id(db, updated.student_id)
+        if recipient is not None:
+            emit_notifications(
+                db,
+                recipient_user_ids=[recipient],
+                title="Visitor request updated",
+                message=f"Your visitor request {updated.visitor_number} was {updated.status.value.lower()}.",
+                notification_type=NotificationType.VISITOR,
+                event_key=f"visitor:decision:{updated.id}:{updated.status.value}",
+                related_record_id=updated.id,
+            )
+        return updated
     except ValueError as error:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error

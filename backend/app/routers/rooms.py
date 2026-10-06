@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user, require_admin
 from app.database.connection import get_db
 from app.models.room import Room, RoomStatus
+from app.models.notification import NotificationType
+from app.models.student import Student
 from app.models.user import User
 from app.schemas.room import RoomCreate, RoomResponse, RoomUpdate
 from app.services.room_service import (
@@ -16,6 +19,7 @@ from app.services.room_service import (
     list_rooms,
     update_room,
 )
+from app.services.notification_service import emit_notifications, student_user_id
 
 router = APIRouter(prefix="/api/rooms", tags=["Rooms"])
 
@@ -115,7 +119,21 @@ def allocate_room_bed(
     _: User = Depends(require_admin),
 ) -> Room:
     try:
-        return allocate_student(db, room_number, student_id)
+        room = allocate_student(db, room_number, student_id)
+        student = db.scalar(select(Student).where(Student.student_id == student_id))
+        if student is not None:
+            recipient = student_user_id(db, student.id)
+            if recipient is not None:
+                emit_notifications(
+                    db,
+                    recipient_user_ids=[recipient],
+                    title="Room allocation updated",
+                    message=f"You have been allocated to room {room.room_number}.",
+                    notification_type=NotificationType.ROOM,
+                    event_key=f"room:allocated:{student.id}:{room.room_number}",
+                    related_record_id=room.id,
+                )
+        return room
     except (LookupError, PermissionError, OverflowError, FileExistsError, ValueError) as error:
         db.rollback()
         raise map_service_error(error) from error
@@ -129,7 +147,21 @@ def deallocate_room_bed(
     _: User = Depends(require_admin),
 ) -> Room:
     try:
-        return deallocate_student(db, room_number, student_id)
+        room = deallocate_student(db, room_number, student_id)
+        student = db.scalar(select(Student).where(Student.student_id == student_id))
+        if student is not None:
+            recipient = student_user_id(db, student.id)
+            if recipient is not None:
+                emit_notifications(
+                    db,
+                    recipient_user_ids=[recipient],
+                    title="Room allocation updated",
+                    message=f"Your room allocation for {room.room_number} has been removed.",
+                    notification_type=NotificationType.ROOM,
+                    event_key=f"room:deallocated:{student.id}:{room.room_number}",
+                    related_record_id=room.id,
+                )
+        return room
     except (LookupError, PermissionError, OverflowError, FileExistsError, ValueError) as error:
         db.rollback()
         raise map_service_error(error) from error

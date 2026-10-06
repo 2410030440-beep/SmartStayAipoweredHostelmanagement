@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.security import get_current_user, require_admin
 from app.database.connection import get_db
 from app.models.leave import LeaveRequest, LeaveStatus
+from app.models.notification import NotificationType
 from app.models.user import User, UserRole
 from app.schemas.leave import LeaveCreate, LeaveDecision, LeaveResponse
 from app.services.leave_service import (
@@ -17,6 +18,7 @@ from app.services.leave_service import (
     list_leaves,
     list_my_leaves,
 )
+from app.services.notification_service import admin_user_ids, emit_notifications, student_user_id
 
 router = APIRouter(prefix="/api/leaves", tags=["Leaves"])
 
@@ -45,7 +47,17 @@ def create_leave_request(
     current_user: User = Depends(get_current_user),
 ) -> LeaveRequest:
     student = require_student_record(db, current_user)
-    return create_leave(db, student, leave_data)
+    leave = create_leave(db, student, leave_data)
+    emit_notifications(
+        db,
+        recipient_user_ids=admin_user_ids(db),
+        title="New leave request",
+        message=f"{student.full_name} submitted {leave.leave_number} for {leave.start_date} to {leave.end_date}.",
+        notification_type=NotificationType.LEAVE,
+        event_key=f"leave:created:{leave.id}",
+        related_record_id=leave.id,
+    )
+    return leave
 
 
 @router.get("/my", response_model=list[LeaveResponse])
@@ -126,7 +138,19 @@ def decide_leave_request(
     if leave is None:
         raise leave_not_found()
     try:
-        return decide_leave(db, leave, decision)
+        updated = decide_leave(db, leave, decision)
+        recipient = student_user_id(db, updated.student_id)
+        if recipient is not None:
+            emit_notifications(
+                db,
+                recipient_user_ids=[recipient],
+                title="Leave request updated",
+                message=f"Your leave request {updated.leave_number} was {updated.status.value.lower()}.",
+                notification_type=NotificationType.LEAVE,
+                event_key=f"leave:decision:{updated.id}:{updated.status.value}",
+                related_record_id=updated.id,
+            )
+        return updated
     except ValueError as error:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error

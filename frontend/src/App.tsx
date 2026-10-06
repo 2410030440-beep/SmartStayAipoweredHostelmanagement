@@ -2,10 +2,15 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertCircle, ArrowRight, BedDouble, Bell, Building2, CalendarDays, Check, ClipboardCheck, DoorOpen, FileText, Home, LayoutDashboard, Menu, MessageSquare, MoreHorizontal, Plus, Search, Settings, ShieldCheck, Sparkles, Stethoscope, UserRound, Users, Utensils, WalletCards, X } from 'lucide-react'
 import { announcements, leaveRequests, maintenance, menu, rooms, visitors, type Role } from './data'
-import { attendanceService, complaintService, getCurrentUser, loginUser, logoutUser, messFeedbackService, roomService, studentDashboardService, studentService, type AttendanceRecord, type AttendanceSummary, type Complaint, type ComplaintCategory, type ComplaintPriority, type ComplaintStatus, type MessFeedback, type MessMeal, type Room, type Student } from './services'
+import { attendanceService, complaintService, getCurrentUser, loginUser, logoutUser, messFeedbackService, roomService, studentDashboardService, studentService, type AttendanceSummary, type Complaint, type ComplaintCategory, type ComplaintPriority, type ComplaintStatus, type MessFeedback, type MessMeal, type Room, type Student } from './services'
 import { ComplaintsFeature, StudentProfileFeature } from './StudentFeaturePages'
 import { LeaveOperationsPage, MessOperationsPage, VisitorsOperationsPage } from './StudentOperationsPages'
 import { AdminPaymentsPage, StudentPaymentsPage } from './PaymentsPage'
+import AttendanceManagement from './AttendanceManagement'
+import AnnouncementManagement from './AnnouncementManagement'
+import LeaveManagement from './LeaveManagement'
+import VisitorManagement from './VisitorManagement'
+import NotificationCenter from './NotificationCenter'
 import StudentManagement from './StudentManagement'
 import RoomManagement from './RoomManagement'
 import Signup from './Signup.tsx'
@@ -13,7 +18,7 @@ import './App.css'
 import './auth.css'
 
 type Page = { label: string; icon: typeof Home; path: string }
-const studentPages: Page[] = [{ label: 'Dashboard', icon: LayoutDashboard, path: '/student' }, { label: 'My profile', icon: UserRound, path: '/student/profile' }, { label: 'My record', icon: FileText, path: '/student/record' }, { label: 'My room', icon: BedDouble, path: '/student/room' }, { label: 'Attendance', icon: ClipboardCheck, path: '/student/attendance' }, { label: 'Complaints', icon: MessageSquare, path: '/student/complaints' }, { label: 'Mess', icon: Utensils, path: '/student/mess' }, { label: 'Leave requests', icon: CalendarDays, path: '/student/leave' }, { label: 'Visitors', icon: Users, path: '/student/visitors' }, { label: 'Payments', icon: WalletCards, path: '/student/payments' }, { label: 'Notifications', icon: Bell, path: '/student/notifications' }]
+const studentPages: Page[] = [{ label: 'Dashboard', icon: LayoutDashboard, path: '/student' }, { label: 'My profile', icon: UserRound, path: '/student/profile' }, { label: 'My record', icon: FileText, path: '/student/record' }, { label: 'My room', icon: BedDouble, path: '/student/room' }, { label: 'Attendance', icon: ClipboardCheck, path: '/student/attendance' }, { label: 'Complaints', icon: MessageSquare, path: '/student/complaints' }, { label: 'Mess', icon: Utensils, path: '/student/mess' }, { label: 'Leave requests', icon: CalendarDays, path: '/student/leave' }, { label: 'Visitors', icon: Users, path: '/student/visitors' }, { label: 'Payments', icon: WalletCards, path: '/student/payments' }, { label: 'Announcements', icon: Bell, path: '/student/announcements' }, { label: 'Notifications', icon: Bell, path: '/student/notifications' }]
 const adminPages: Page[] = [{ label: 'Dashboard', icon: LayoutDashboard, path: '/admin' }, { label: 'Students', icon: Users, path: '/admin/students' }, { label: 'Rooms', icon: BedDouble, path: '/admin/rooms' }, { label: 'Allocations', icon: DoorOpen, path: '/admin/allocations' }, { label: 'Attendance', icon: ClipboardCheck, path: '/admin/attendance' }, { label: 'Complaints', icon: MessageSquare, path: '/admin/complaints' }, { label: 'Maintenance', icon: Stethoscope, path: '/admin/maintenance' }, { label: 'Mess', icon: Utensils, path: '/admin/mess' }, { label: 'Leave requests', icon: CalendarDays, path: '/admin/leave' }, { label: 'Visitors', icon: Users, path: '/admin/visitors' }, { label: 'Payments', icon: WalletCards, path: '/admin/payments' }, { label: 'Announcements', icon: Bell, path: '/admin/announcements' }, { label: 'Analytics', icon: Activity, path: '/admin/analytics' }, { label: 'Notifications', icon: Bell, path: '/admin/notifications' }]
 const Badge = ({ children, tone = 'neutral' }: { children: React.ReactNode; tone?: string }) => <span className={`badge ${tone}`}>{children}</span>
 const Button = ({ children, variant = 'primary', onClick }: { children: React.ReactNode; variant?: string; onClick?: () => void }) => <button onClick={onClick} className={`button ${variant}`}>{children}</button>
@@ -109,6 +114,7 @@ function StudentHome() {
   const absent=attendance?.absent_days ?? 0
   const total=attendance?.total_days ?? 0
   return <>
+    <NotificationCenter role="STUDENT" />
     <div className="dash-welcome-v5"><div><span className="eyebrow">STUDENT OVERVIEW</span><h1>Good morning, {firstName} <span>👋</span></h1><p>Your hostel essentials, requests and updates in one clear view.</p></div><div className="dash-actions-v5"><button className="dash-btn-secondary" onClick={()=>navigate('/student/attendance')}><ClipboardCheck size={15}/> Attendance</button><button className="dash-btn-primary" onClick={()=>navigate('/student/complaints')}><Plus size={15}/> New request</button></div></div>
     {error && <div className="dashboard-alert"><AlertCircle size={16}/><span>{error}</span></div>}
     <div className="dash-kpi-grid-v5">
@@ -128,7 +134,7 @@ function StudentHome() {
   </>
 }
 
-function StudentPage({ path }: { path: string }) { const title = path.split('/').pop() ?? ''; if (title === 'profile') return <StudentProfileFeature />; if (title === 'record') return <StudentManagement mode="student" />; if (title === 'room') return <RoomManagement mode="student" />; if (title === 'complaints') return <ComplaintsFeature />; if (title === 'attendance') return <AttendancePage />; if (title === 'mess') return <MessOperationsPage />; if (title === 'leave') return <LeaveOperationsPage />; if (title === 'visitors') return <VisitorsOperationsPage />; if (title === 'payments') return <StudentPaymentsPage />; if (title === 'notifications') return <NotificationsPage />; return <GenericPage title={title} /> }
+function StudentPage({ path }: { path: string }) { const title = path.split('/').pop() ?? ''; if (title === 'profile') return <StudentProfileFeature />; if (title === 'record') return <StudentManagement mode="student" />; if (title === 'room') return <RoomManagement mode="student" />; if (title === 'attendance') return <AttendanceManagement mode="student" />; if (title === 'complaints') return <ComplaintsFeature />; if (title === 'announcements') return <AnnouncementManagement mode="student" />; if (title === 'mess') return <MessOperationsPage />; if (title === 'leave') return <LeaveOperationsPage />; if (title === 'visitors') return <VisitorsOperationsPage />; if (title === 'payments') return <StudentPaymentsPage />; if (title === 'notifications') return <NotificationCenter role="STUDENT" fullPage />; return <GenericPage title={title} /> }
 
 
 function StudentProfilePage() {
@@ -386,35 +392,6 @@ function ComplaintPage({ mode = 'student' }: { mode?: 'student' | 'admin' }) {
   </>
 }
 
-function AttendancePage() {
-  const [summary, setSummary] = useState<AttendanceSummary | null>(null)
-  const [records, setRecords] = useState<AttendanceRecord[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    Promise.all([attendanceService.getOverview(), attendanceService.getRecords()])
-      .then(([attendanceSummary, attendanceRecords]) => { if (!cancelled) { setSummary(attendanceSummary); setRecords(attendanceRecords) } })
-      .catch((requestError) => { if (!cancelled) setError(requestError instanceof Error ? requestError.message : 'Unable to load attendance.') })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
-  }, [])
-  return <><PageHeader eyebrow="YOUR PRESENCE" title="Attendance" copy="Your attendance records from the SmartStay database." />
-    {error && <p className="auth-error" role="alert">{error}</p>}
-    <div className="stats-grid">
-      <StatCard label="Overall attendance" value={summary ? `${summary.attendance_percentage}%` : '—'} note={summary ? `${summary.present_days} present of ${summary.total_days} recorded days` : 'Loading'} tone="mint" icon={ClipboardCheck} />
-      <StatCard label="Present days" value={summary ? String(summary.present_days) : '—'} note="Recorded as present" tone="blue" icon={Check} />
-      <StatCard label="Absent days" value={summary ? String(summary.absent_days) : '—'} note="Recorded as absent" tone="coral" icon={Activity} />
-      <StatCard label="Total recorded" value={summary ? String(summary.total_days) : '—'} note="Attendance entries" tone="amber" icon={CalendarDays} />
-    </div>
-    <section className="panel"><div className="panel-heading"><div><span className="eyebrow">DAILY RECORDS</span><h2>Attendance history</h2></div>{loading && <Badge tone="soft">Loading...</Badge>}</div>
-      {records.length === 0 && !loading ? <div className="empty-state"><span className="spark"><ClipboardCheck size={20} /></span><h2>No attendance records yet.</h2><p>Your attendance will appear here after the warden records it.</p></div> :
-      <div className="table-wrap"><table><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody>{records.map((record) => <tr key={record.id}><td><strong>{new Date(record.attendance_date).toLocaleDateString()}</strong></td><td><Badge tone={record.status === 'PRESENT' ? 'mint' : 'coral'}>{record.status}</Badge></td></tr>)}</tbody></table></div>}
-    </section>
-  </>
-}
-
 function MessPage() {
   const [items, setItems] = useState<MessFeedback[]>([])
   const [open, setOpen] = useState(false)
@@ -473,7 +450,12 @@ function AdminPage({ path }: { path: string }) {
   const key = path.split('/').pop() ?? ''
   if (key === 'students') return <StudentManagement mode="admin" />
   if (key === 'rooms') return <RoomManagement mode="admin" />
+  if (key === 'attendance') return <AttendanceManagement mode="admin" />
   if (key === 'complaints') return <ComplaintPage mode="admin" />
+  if (key === 'leave') return <LeaveManagement mode="admin" />
+  if (key === 'visitors') return <VisitorManagement mode="admin" />
+  if (key === 'announcements') return <AnnouncementManagement mode="admin" />
+  if (key === 'notifications') return <NotificationCenter role="ADMIN" fullPage />
   if (key === 'mess') return <AdminMessPage />
   if (key === 'payments') return <AdminPaymentsPage />
   return <><PageHeader eyebrow="WARDEN WORKSPACE" title={key.charAt(0).toUpperCase() + key.slice(1)} copy="A prepared operations view for your hostel team." action={<Button><Plus size={17} /> New action</Button>} /><section className="panel admin-table"><div className="toolbar"><SearchInput placeholder="Search this workspace" /><Badge tone="soft">Mock data</Badge></div>{key === 'allocations' ? <DataTable headers={['Room', 'Block', 'Type', 'Occupants', 'Status']} rows={rooms.map((x) => [x.room, x.block, x.type, x.occupants, x.status])} /> : key === 'maintenance' ? <DataTable headers={['Asset', 'Location', 'Last maintenance', 'Complaints', 'Status']} rows={maintenance.map((x) => [x.asset, x.location, x.last, String(x.complaints), x.status])} /> : <div className="empty-state"><span className="spark"><Settings size={20} /></span><h2>Clearer operations start here.</h2><p>This module is ready for local mock interactions and future FastAPI service integration.</p></div>}</section></>
@@ -531,6 +513,7 @@ function AdminHome() {
   }, [])
 
   return <>
+    <NotificationCenter role="ADMIN" />
     <div className="dash-welcome-v5"><div><span className="eyebrow">WARDEN OVERVIEW</span><h1>Good morning, Warden <span>👋</span></h1><p>A clear operational view of your students, rooms and daily hostel activity.</p></div><div className="dash-actions-v5"><button className="dash-btn-secondary" onClick={() => window.location.assign('/admin/rooms')}><BedDouble size={15}/> Rooms</button><button className="dash-btn-primary" onClick={() => window.location.assign('/admin/complaints')}><MessageSquare size={15}/> Complaints</button></div></div>
     <div className="dash-kpi-grid-v5">
       <div className="dash-kpi-v5"><span>STUDENTS</span><strong>{studentCount === null ? '—' : String(studentCount)}</strong><small>Student records</small></div>
@@ -552,6 +535,6 @@ function AdminHome() {
 
 function Modal({ title, close, children }: { title: string; close: () => void; children: React.ReactNode }) { return <div className="modal-backdrop" onMouseDown={close}><div className="modal" onMouseDown={(e) => e.stopPropagation()}><div className="modal-head"><h2>{title}</h2><button onClick={close}><X size={18} /></button></div>{children}</div></div> }
 
-void [StudentProfilePage, MessPage, LeavePage, VisitorsPage, PaymentsPage]
+void [StudentProfilePage, MessPage, LeavePage, VisitorsPage, PaymentsPage, NotificationsPage, NotificationCenter]
 
 export default App

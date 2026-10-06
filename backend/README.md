@@ -114,6 +114,10 @@ Use `POST /api/auth/login` as a form request. In Swagger, enter the email in the
 
 Call `GET /api/auth/me` with the login token. In Swagger, click **Authorize**, enter `Bearer <access_token>` when requested, and execute `/api/auth/me`.
 
+## Real-time notifications
+
+Notifications are persisted in PostgreSQL and delivered through the authenticated `/api/notifications/ws` WebSocket. The in-process connection manager is suitable for local development and a single Uvicorn worker. Deployments using multiple backend workers need shared messaging infrastructure such as Redis Pub/Sub so an event committed by one worker reaches connections owned by another worker.
+
 ## Development admin account
 
 Public registration creates student accounts. To create one development admin account explicitly, open PowerShell in the `backend` directory and set the credentials for the current shell:

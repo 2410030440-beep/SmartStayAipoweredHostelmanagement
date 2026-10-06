@@ -6,7 +6,7 @@ from sqlalchemy import text
 
 from app.database.base import Base
 from app.database.connection import engine
-from app.models import announcement, attendance, complaint, demo_payment, fee_configuration, leave, maintenance, mess, mess_feedback, payment, payment_audit, room, student, user, visitor
+from app.models import announcement, attendance, complaint, demo_payment, fee_configuration, leave, maintenance, mess, mess_feedback, notification, payment, payment_audit, room, student, user, visitor
 from app.routers.announcements import router as announcements_router
 from app.routers.attendance import router as attendance_router
 from app.routers.auth import router as auth_router
@@ -19,6 +19,7 @@ from app.routers.students import router as students_router
 from app.routers.rooms import router as rooms_router
 from app.routers.visitors import router as visitors_router
 from app.routers.payments import router as payments_router
+from app.routers.notifications import router as notifications_router
 from app.core.config import settings
 
 
@@ -77,6 +78,7 @@ app.include_router(mess_router)
 app.include_router(visitors_router)
 app.include_router(payments_router)
 app.include_router(announcements_router)
+app.include_router(notifications_router)
 
 
 @app.get("/")

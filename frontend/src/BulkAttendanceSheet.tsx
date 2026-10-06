@@ -28,7 +28,7 @@ export default function BulkAttendanceSheet() {
   const [date, setDate] = useState(today)
   const [students, setStudents] = useState<Student[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
-  const [statuses, setStatuses] = useState<Record<number, AttendanceStatus>>({})
+  const [statuses, setStatuses] = useState<Record<number, AttendanceStatus | undefined>>({})
   const [search, setSearch] = useState('')
   const [blockFilter, setBlockFilter] = useState('')
   const [floorFilter, setFloorFilter] = useState('')
@@ -46,7 +46,7 @@ export default function BulkAttendanceSheet() {
       if (cancelled) return
       const activeStudents = studentRecords.filter((student) => student.status === 'ACTIVE')
       const existingStatuses = new Map(attendanceRecords.map((record) => [record.student_id, record.status]))
-      const initialStatuses = Object.fromEntries(activeStudents.map((student) => [student.id, existingStatuses.get(student.id) ?? 'PRESENT'])) as Record<number, AttendanceStatus>
+      const initialStatuses = Object.fromEntries(activeStudents.map((student) => [student.id, existingStatuses.get(student.id)])) as Record<number, AttendanceStatus | undefined>
       setStudents(activeStudents)
       setRooms(roomRecords)
       setStatuses(initialStatuses)
@@ -63,9 +63,11 @@ export default function BulkAttendanceSheet() {
   const blockOptions = [...new Set(rooms.map((room) => blockCode(room)))].sort()
   const floorOptions = [...new Set(rooms.map((room) => room.floor))].sort((first, second) => first - second)
   const roomOptions = useMemo(() => rooms.filter((room) => (!blockFilter || blockCode(room) === blockFilter) && (!floorFilter || String(room.floor) === floorFilter)), [blockFilter, floorFilter, rooms])
+  const assignedStudents = useMemo(() => students.filter((student) => rooms.some((room) => room.room_number === student.room_number)), [rooms, students])
+  const unassignedCount = students.length - assignedStudents.length
   const filteredStudents = useMemo(() => {
     const query = search.trim().toLowerCase()
-    return students.filter((student) => {
+    return assignedStudents.filter((student) => {
       const room = rooms.find((record) => record.room_number === student.room_number)
       const matchesBlock = !blockFilter || blockCode(room) === blockFilter
       const matchesFloor = !floorFilter || String(room?.floor ?? '') === floorFilter
@@ -73,22 +75,31 @@ export default function BulkAttendanceSheet() {
       const matchesSearch = !query || [student.student_id, student.full_name, student.email, student.room_number ?? ''].some((value) => value.toLowerCase().includes(query))
       return matchesBlock && matchesFloor && matchesRoom && matchesSearch
     })
-  }, [blockFilter, floorFilter, roomFilter, rooms, search, students])
+  }, [assignedStudents, blockFilter, floorFilter, roomFilter, rooms, search])
   const pageCount = Math.max(1, Math.ceil(filteredStudents.length / 50))
   const currentPage = Math.min(page, pageCount)
   const pageStudents = filteredStudents.slice((currentPage - 1) * 50, currentPage * 50)
   const presentCount = filteredStudents.filter((student) => statuses[student.id] === 'PRESENT').length
-  const absentCount = filteredStudents.length - presentCount
+  const absentCount = filteredStudents.filter((student) => statuses[student.id] === 'ABSENT').length
+  const notMarkedCount = filteredStudents.length - presentCount - absentCount
 
   const markAll = (status: AttendanceStatus) => setStatuses((previous) => ({ ...previous, ...Object.fromEntries(filteredStudents.map((student) => [student.id, status])) }))
   const toggleStatus = (studentId: number) => setStatuses((previous) => ({ ...previous, [studentId]: previous[studentId] === 'PRESENT' ? 'ABSENT' : 'PRESENT' }))
   const updateDate = (value: string) => { setError(''); setLoading(true); setPage(1); setDate(value) }
   const saveAttendance = async () => {
     if (!filteredStudents.length) return
+    if (!date) {
+      setError('Select an attendance date before saving.')
+      return
+    }
+    if (notMarkedCount > 0) {
+      setError(`Mark every filtered student Present or Absent before saving. ${notMarkedCount} student${notMarkedCount === 1 ? '' : 's'} remain${notMarkedCount === 1 ? 's' : ''} unmarked.`)
+      return
+    }
     setSaving(true)
     setError('')
     try {
-      const response = await attendanceManagementService.bulkUpdate({ attendance_date: date, records: filteredStudents.map((student) => ({ student_id: student.id, status: statuses[student.id] ?? 'PRESENT' })) })
+      const response = await attendanceManagementService.bulkUpdate({ attendance_date: date, records: filteredStudents.map((student) => ({ student_id: student.id, status: statuses[student.id] as AttendanceStatus })) })
       setNotice(`${response.present} present and ${response.absent} absent saved for ${readableDate(date)}.`)
       setLoading(true)
       setReloadVersion((version) => version + 1)
@@ -103,7 +114,7 @@ export default function BulkAttendanceSheet() {
     <div className="page-header"><div><span className="eyebrow">WARDEN WORKSPACE</span><h1>Attendance</h1><p>Mark the daily attendance sheet for active students.</p></div><div className="bulk-attendance-date"><label>Date<input type="date" value={date} onChange={(event) => updateDate(event.target.value)} disabled={loading || saving} /></label></div></div>
     {notice && <div className="attendance-notice" role="status">{notice}<button type="button" onClick={() => setNotice('')} aria-label="Dismiss message"><X size={15} /></button></div>}
     {error && <div className="attendance-error" role="alert">{error}</div>}
-    <section className="panel bulk-attendance-panel"><div className="bulk-attendance-toolbar"><div className="bulk-attendance-summary"><Users size={18} /><strong>{filteredStudents.length}</strong><span>students found</span><span className="bulk-count-present">{presentCount} present</span><span className="bulk-count-absent">{absentCount} absent</span></div><div className="bulk-attendance-actions"><button className="button secondary" type="button" onClick={() => markAll('PRESENT')} disabled={loading || saving || !filteredStudents.length}><Check size={16} /> Mark all present</button><button className="button secondary" type="button" onClick={() => markAll('ABSENT')} disabled={loading || saving || !filteredStudents.length}><X size={16} /> Mark all absent</button><button className="button" type="button" onClick={() => void saveAttendance()} disabled={loading || saving || !filteredStudents.length}>{saving ? 'Saving...' : <><Save size={16} /> Save attendance</>}</button></div></div><div className="bulk-attendance-filters"><label>Block<select value={blockFilter} onChange={(event) => { setBlockFilter(event.target.value); setRoomFilter(''); setPage(1) }} disabled={loading || saving}><option value="">All blocks</option>{blockOptions.map((block) => <option key={block} value={block}>Block {block}</option>)}</select></label><label>Floor<select value={floorFilter} onChange={(event) => { setFloorFilter(event.target.value); setRoomFilter(''); setPage(1) }} disabled={loading || saving}><option value="">All floors</option>{floorOptions.map((floor) => <option key={floor} value={floor}>Floor {floor}</option>)}</select></label><label>Room<select value={roomFilter} onChange={(event) => { setRoomFilter(event.target.value); setPage(1) }} disabled={loading || saving}><option value="">All rooms</option>{roomOptions.map((room) => <option key={room.room_number} value={room.room_number}>{room.room_number}</option>)}</select></label></div><div className="bulk-attendance-search"><Search size={17} /><input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} placeholder="Search student ID, name, email or room" aria-label="Search attendance students" /></div>{loading ? <div className="attendance-empty">Loading active students, rooms and attendance...</div> : !students.length ? <div className="attendance-empty">No active students are available for attendance marking.</div> : !filteredStudents.length ? <div className="attendance-empty">No students match the current filters.</div> : <><div className="table-wrap"><table className="bulk-attendance-table"><thead><tr><th>Student ID</th><th>Student name</th><th>Room</th><th>Status</th></tr></thead><tbody>{pageStudents.map((student) => { const status = statuses[student.id] ?? 'PRESENT'; return <tr key={student.id}><td><strong>{student.student_id}</strong></td><td><strong>{student.full_name}</strong><small>{student.email}</small></td><td>{student.room_number ?? 'Unassigned'}</td><td><button className={`attendance-toggle ${status.toLowerCase()}`} type="button" onClick={() => toggleStatus(student.id)} aria-pressed={status === 'PRESENT'} disabled={saving}><span className="attendance-toggle-mark">{status === 'PRESENT' ? <Check size={14} /> : <X size={14} />}</span>{statusLabel(status)}</button></td></tr>})}</tbody></table></div><div className="bulk-attendance-pagination"><span>{(currentPage - 1) * 50 + 1}-{Math.min(currentPage * 50, filteredStudents.length)} of {filteredStudents.length}</span><button className="button secondary" type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={currentPage === 1 || saving}>Previous</button><span>Page {currentPage} of {pageCount}</span><button className="button secondary" type="button" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={currentPage === pageCount || saving}>Next</button></div></>}</section>
+    <section className="panel bulk-attendance-panel"><div className="bulk-attendance-toolbar"><div className="bulk-attendance-summary"><Users size={18} /><strong>{filteredStudents.length}</strong><span>students found</span><span className="bulk-count-present">{presentCount} present</span><span className="bulk-count-absent">{absentCount} absent</span><span>{notMarkedCount} not marked</span></div><div className="bulk-attendance-actions"><button className="button secondary" type="button" onClick={() => markAll('PRESENT')} disabled={loading || saving || !filteredStudents.length}><Check size={16} /> Select all present</button><button className="button secondary" type="button" onClick={() => { if (window.confirm(`Mark all ${filteredStudents.length} filtered students absent for ${readableDate(date)}?`)) markAll('ABSENT') }} disabled={loading || saving || !filteredStudents.length}><X size={16} /> Mark all absent</button><button className="button" type="button" onClick={() => void saveAttendance()} disabled={loading || saving || !filteredStudents.length}>{saving ? 'Saving...' : <><Save size={16} /> Save attendance</>}</button></div></div><div className="bulk-attendance-filters"><label>Block<select value={blockFilter} onChange={(event) => { setBlockFilter(event.target.value); setRoomFilter(''); setPage(1) }} disabled={loading || saving}><option value="">All blocks</option>{blockOptions.map((block) => <option key={block} value={block}>Block {block}</option>)}</select></label><label>Floor<select value={floorFilter} onChange={(event) => { setFloorFilter(event.target.value); setRoomFilter(''); setPage(1) }} disabled={loading || saving}><option value="">All floors</option>{floorOptions.map((floor) => <option key={floor} value={floor}>Floor {floor}</option>)}</select></label><label>Room<select value={roomFilter} onChange={(event) => { setRoomFilter(event.target.value); setPage(1) }} disabled={loading || saving}><option value="">All rooms</option>{roomOptions.map((room) => <option key={room.room_number} value={room.room_number}>{room.room_number}</option>)}</select></label></div><div className="bulk-attendance-search"><Search size={17} /><input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} placeholder="Search student ID, name, email or room" aria-label="Search attendance students" /></div>{loading ? <div className="attendance-empty">Loading active students, rooms and attendance...</div> : !students.length ? <div className="attendance-empty">No active students are available for attendance marking.</div> : <>{unassignedCount > 0 && <div className="attendance-error" role="status">{unassignedCount} active student{unassignedCount === 1 ? '' : 's'} do not have a room/block assignment and are excluded. Assign them to a room before recording attendance.</div>}{!filteredStudents.length ? <div className="attendance-empty">No assigned students match the current filters.</div> : <><div className="table-wrap"><table className="bulk-attendance-table"><thead><tr><th>Student ID</th><th>Student name</th><th>Block</th><th>Room</th><th>Status</th></tr></thead><tbody>{pageStudents.map((student) => { const status = statuses[student.id]; const room = rooms.find((record) => record.room_number === student.room_number); return <tr key={student.id}><td><strong>{student.student_id}</strong></td><td><strong>{student.full_name}</strong><small>{student.email}</small></td><td>{room ? blockCode(room) : 'Unassigned'}</td><td>{student.room_number}</td><td><button className={`attendance-toggle ${(status ?? 'not-marked').toLowerCase()}`} type="button" onClick={() => toggleStatus(student.id)} aria-pressed={status === 'PRESENT'} disabled={saving}><span className="attendance-toggle-mark">{status === 'PRESENT' ? <Check size={14} /> : status === 'ABSENT' ? <X size={14} /> : '–'}</span>{status ? statusLabel(status) : 'Not marked'}</button></td></tr>})}</tbody></table></div><div className="bulk-attendance-pagination"><span>{(currentPage - 1) * 50 + 1}-{Math.min(currentPage * 50, filteredStudents.length)} of {filteredStudents.length}</span><button className="button secondary" type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={currentPage === 1 || saving}>Previous</button><span>Page {currentPage} of {pageCount}</span><button className="button secondary" type="button" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={currentPage === pageCount || saving}>Next</button></div></>}</>}</section>
   </>
 }
 

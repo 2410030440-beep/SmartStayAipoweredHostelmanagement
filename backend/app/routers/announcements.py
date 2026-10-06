@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.security import get_current_user, require_admin
 from app.database.connection import get_db
 from app.models.announcement import Announcement, AnnouncementCategory, AnnouncementPriority, AnnouncementStatus, AnnouncementTarget
+from app.models.notification import NotificationType
 from app.models.user import User, UserRole
 from app.schemas.announcement import AnnouncementCreate, AnnouncementResponse, AnnouncementUpdate
 from app.services.announcement_service import (
@@ -18,6 +19,7 @@ from app.services.announcement_service import (
     update_announcement,
 )
 from app.services.student_service import get_student_by_email
+from app.services.notification_service import emit_notifications, student_user_ids_for_target
 
 router = APIRouter(prefix="/api/announcements", tags=["Announcements"])
 
@@ -105,7 +107,22 @@ def publish_announcement_record(
     if announcement is None:
         raise announcement_not_found()
     try:
-        return publish_announcement(db, announcement)
+        published = publish_announcement(db, announcement)
+        emit_notifications(
+            db,
+            recipient_user_ids=student_user_ids_for_target(
+                db,
+                published.target.value,
+                published.target_block,
+                published.target_room,
+            ),
+            title="New announcement",
+            message=published.title,
+            notification_type=NotificationType.ANNOUNCEMENT,
+            event_key=f"announcement:published:{published.id}",
+            related_record_id=published.id,
+        )
+        return published
     except ValueError as error:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error

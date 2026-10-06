@@ -10,10 +10,22 @@ class AttendanceCreate(BaseModel):
     attendance_date: date
     status: AttendanceStatus
 
+    @model_validator(mode="after")
+    def validate_date(self) -> "AttendanceCreate":
+        if self.attendance_date > date.today():
+            raise ValueError("attendance_date cannot be in the future")
+        return self
+
 
 class AttendanceUpdate(BaseModel):
     attendance_date: date | None = None
     status: AttendanceStatus | None = None
+
+    @model_validator(mode="after")
+    def validate_date(self) -> "AttendanceUpdate":
+        if self.attendance_date is not None and self.attendance_date > date.today():
+            raise ValueError("attendance_date cannot be in the future")
+        return self
 
 
 class AttendanceBulkRecord(BaseModel):
@@ -24,6 +36,12 @@ class AttendanceBulkRecord(BaseModel):
 class AttendanceBulkCreate(BaseModel):
     attendance_date: date
     records: list[AttendanceBulkRecord] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_date(self) -> "AttendanceBulkCreate":
+        if self.attendance_date > date.today():
+            raise ValueError("attendance_date cannot be in the future")
+        return self
 
     @model_validator(mode="after")
     def validate_unique_students(self) -> "AttendanceBulkCreate":

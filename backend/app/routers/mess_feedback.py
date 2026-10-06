@@ -42,7 +42,7 @@ def get_my_feedback(
 
 
 @router.post("", response_model=MessFeedbackResponse, status_code=status.HTTP_201_CREATED)
-def create_mess_feedback(
+def create_legacy_mess_feedback(
     data: MessFeedbackCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

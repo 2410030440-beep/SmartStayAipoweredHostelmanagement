@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.security import get_current_user, require_admin
 from app.database.connection import get_db
 from app.models.complaint import Complaint, ComplaintCategory, ComplaintPriority, ComplaintStatus
+from app.models.notification import NotificationType
 from app.models.student import Student
 from app.models.user import User, UserRole
 from app.schemas.complaint import ComplaintCreate, ComplaintResponse, ComplaintUpdate
@@ -16,6 +17,7 @@ from app.services.complaint_service import (
     list_my_complaints,
     update_complaint,
 )
+from app.services.notification_service import admin_user_ids, emit_notifications
 
 router = APIRouter(prefix="/api/complaints", tags=["Complaints"])
 
@@ -40,7 +42,17 @@ def create_complaint_record(
     current_user: User = Depends(get_current_user),
 ) -> Complaint:
     student = require_student_record(db, current_user)
-    return create_complaint(db, student, complaint_data)
+    complaint = create_complaint(db, student, complaint_data)
+    emit_notifications(
+        db,
+        recipient_user_ids=admin_user_ids(db),
+        title="New complaint submitted",
+        message=f"{student.full_name} submitted complaint {complaint.complaint_number}: {complaint.title}.",
+        notification_type=NotificationType.COMPLAINT,
+        event_key=f"complaint:created:{complaint.id}",
+        related_record_id=complaint.id,
+    )
+    return complaint
 
 
 @router.get("/my", response_model=list[ComplaintResponse])

@@ -37,7 +37,10 @@ class MessMenu(Base):
 
 class MessFeedback(Base):
     __tablename__ = "mess_feedback"
-    __table_args__ = (CheckConstraint("rating BETWEEN 1 AND 5", name="ck_mess_feedback_rating"),)
+    __table_args__ = (
+        CheckConstraint("rating BETWEEN 1 AND 5", name="ck_mess_feedback_rating"),
+        {"extend_existing": True},
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True, nullable=False)
