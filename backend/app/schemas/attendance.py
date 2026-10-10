@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.attendance import AttendanceStatus
 
@@ -14,6 +14,30 @@ class AttendanceCreate(BaseModel):
 class AttendanceUpdate(BaseModel):
     attendance_date: date | None = None
     status: AttendanceStatus | None = None
+
+
+class AttendanceBulkRecord(BaseModel):
+    student_id: int = Field(gt=0)
+    status: AttendanceStatus
+
+
+class AttendanceBulkCreate(BaseModel):
+    attendance_date: date
+    records: list[AttendanceBulkRecord] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_unique_students(self) -> "AttendanceBulkCreate":
+        student_ids = [record.student_id for record in self.records]
+        if len(student_ids) != len(set(student_ids)):
+            raise ValueError("Each student can appear only once in a bulk attendance request")
+        return self
+
+
+class AttendanceBulkResponse(BaseModel):
+    attendance_date: date
+    total_students: int
+    present: int
+    absent: int
 
 
 class AttendanceResponse(BaseModel):

@@ -2,7 +2,10 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, AlertCircle, ArrowRight, BedDouble, Bell, Building2, CalendarDays, Check, ClipboardCheck, DoorOpen, FileText, Home, LayoutDashboard, Menu, MessageSquare, MoreHorizontal, Plus, Search, Settings, ShieldCheck, Sparkles, Stethoscope, UserRound, Users, Utensils, WalletCards, X } from 'lucide-react'
 import { announcements, leaveRequests, maintenance, menu, rooms, visitors, type Role } from './data'
-import { attendanceService, complaintService, getCurrentUser, loginUser, logoutUser, messFeedbackService, roomService, studentDashboardService, studentService, type AttendanceRecord, type AttendanceSummary, type Complaint, type ComplaintCategory, type ComplaintPriority, type ComplaintStatus, type MessFeedback, type MessMeal, type Student, type Room } from './services'
+import { attendanceService, complaintService, getCurrentUser, loginUser, logoutUser, messFeedbackService, roomService, studentDashboardService, studentService, type AttendanceRecord, type AttendanceSummary, type Complaint, type ComplaintCategory, type ComplaintPriority, type ComplaintStatus, type MessFeedback, type MessMeal, type Room, type Student } from './services'
+import { ComplaintsFeature, StudentProfileFeature } from './StudentFeaturePages'
+import { LeaveOperationsPage, MessOperationsPage, VisitorsOperationsPage } from './StudentOperationsPages'
+import { AdminPaymentsPage, StudentPaymentsPage } from './PaymentsPage'
 import StudentManagement from './StudentManagement'
 import RoomManagement from './RoomManagement'
 import Signup from './Signup.tsx'
@@ -31,14 +34,15 @@ function Landing() {
 
     <main>
       <section className="photo-hero">
-        <img className="photo-hero-image" src="/smartstay-hero.png" alt="Students relaxing and studying in a modern hostel common room" />
-        <div className="photo-hero-overlay" />
         <div className="photo-hero-content">
           <span className="photo-hero-kicker"><i /> AI-POWERED HOSTEL MANAGEMENT</span>
           <h1>Smarter hostel management.<br /><em>Better everyday living.</em></h1>
           <p>One connected workspace for rooms, attendance, complaints, leave, visitors and payments — built for students and hostel teams.</p>
           <div className="photo-hero-actions"><Button onClick={() => navigate('/login')}>Explore SmartStay <ArrowRight size={16} /></Button><Link to="/signup">Create student account</Link></div>
           <div className="photo-hero-trust"><span><Check size={14} /> Centralized records</span><span><Check size={14} /> Faster requests</span><span><Check size={14} /> AI-ready foundation</span></div>
+        </div>
+        <div className="photo-hero-visual">
+          <img className="photo-hero-image" src="/smartstay-hero.png" alt="Students relaxing and studying in a modern hostel common room" />
         </div>
       </section>
 
@@ -124,7 +128,7 @@ function StudentHome() {
   </>
 }
 
-function StudentPage({ path }: { path: string }) { const title = path.split('/').pop() ?? ''; if (title === 'profile') return <StudentProfilePage />; if (title === 'record') return <StudentManagement mode="student" />; if (title === 'room') return <RoomManagement mode="student" />; if (title === 'complaints') return <ComplaintPage mode="student" />; if (title === 'attendance') return <AttendancePage />; if (title === 'mess') return <MessPage />; if (title === 'leave') return <LeavePage />; if (title === 'visitors') return <VisitorsPage />; if (title === 'payments') return <PaymentsPage />; if (title === 'notifications') return <NotificationsPage />; return <GenericPage title={title} /> }
+function StudentPage({ path }: { path: string }) { const title = path.split('/').pop() ?? ''; if (title === 'profile') return <StudentProfileFeature />; if (title === 'record') return <StudentManagement mode="student" />; if (title === 'room') return <RoomManagement mode="student" />; if (title === 'complaints') return <ComplaintsFeature />; if (title === 'attendance') return <AttendancePage />; if (title === 'mess') return <MessOperationsPage />; if (title === 'leave') return <LeaveOperationsPage />; if (title === 'visitors') return <VisitorsOperationsPage />; if (title === 'payments') return <StudentPaymentsPage />; if (title === 'notifications') return <NotificationsPage />; return <GenericPage title={title} /> }
 
 
 function StudentProfilePage() {
@@ -471,6 +475,7 @@ function AdminPage({ path }: { path: string }) {
   if (key === 'rooms') return <RoomManagement mode="admin" />
   if (key === 'complaints') return <ComplaintPage mode="admin" />
   if (key === 'mess') return <AdminMessPage />
+  if (key === 'payments') return <AdminPaymentsPage />
   return <><PageHeader eyebrow="WARDEN WORKSPACE" title={key.charAt(0).toUpperCase() + key.slice(1)} copy="A prepared operations view for your hostel team." action={<Button><Plus size={17} /> New action</Button>} /><section className="panel admin-table"><div className="toolbar"><SearchInput placeholder="Search this workspace" /><Badge tone="soft">Mock data</Badge></div>{key === 'allocations' ? <DataTable headers={['Room', 'Block', 'Type', 'Occupants', 'Status']} rows={rooms.map((x) => [x.room, x.block, x.type, x.occupants, x.status])} /> : key === 'maintenance' ? <DataTable headers={['Asset', 'Location', 'Last maintenance', 'Complaints', 'Status']} rows={maintenance.map((x) => [x.asset, x.location, x.last, String(x.complaints), x.status])} /> : <div className="empty-state"><span className="spark"><Settings size={20} /></span><h2>Clearer operations start here.</h2><p>This module is ready for local mock interactions and future FastAPI service integration.</p></div>}</section></>
 }
 
@@ -546,5 +551,7 @@ function AdminHome() {
 
 
 function Modal({ title, close, children }: { title: string; close: () => void; children: React.ReactNode }) { return <div className="modal-backdrop" onMouseDown={close}><div className="modal" onMouseDown={(e) => e.stopPropagation()}><div className="modal-head"><h2>{title}</h2><button onClick={close}><X size={18} /></button></div>{children}</div></div> }
+
+void [StudentProfilePage, MessPage, LeavePage, VisitorsPage, PaymentsPage]
 
 export default App

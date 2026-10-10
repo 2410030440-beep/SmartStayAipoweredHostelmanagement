@@ -37,13 +37,13 @@ class Complaint(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     complaint_number: Mapped[str] = mapped_column(
-        String(30), unique=True, index=True, nullable=False
+        String(40), unique=True, index=True, nullable=False
     )
     student_id: Mapped[int] = mapped_column(
         ForeignKey("students.id"), index=True, nullable=False
     )
-    room_number: Mapped[str | None] = mapped_column(String(30), nullable=True)
-    title: Mapped[str] = mapped_column(String(150), nullable=False)
+    room_number: Mapped[str | None] = mapped_column(String(30), index=True, nullable=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     category: Mapped[ComplaintCategory] = mapped_column(
         SqlEnum(ComplaintCategory, name="complaint_category"),

@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.attendance import Attendance, AttendanceStatus
-from app.schemas.attendance import AttendanceCreate, AttendanceUpdate
+from app.schemas.attendance import AttendanceBulkCreate, AttendanceCreate, AttendanceUpdate
 
 
 def get_attendance(db: Session, attendance_id: int, for_update: bool = False) -> Attendance | None:
@@ -84,6 +84,41 @@ def update_attendance(
         raise
     db.refresh(attendance)
     return attendance
+
+
+def upsert_attendance_bulk(db: Session, attendance_data: AttendanceBulkCreate) -> list[Attendance]:
+    student_ids = [record.student_id for record in attendance_data.records]
+    existing_records = {
+        record.student_id: record
+        for record in db.scalars(
+            select(Attendance).where(
+                Attendance.attendance_date == attendance_data.attendance_date,
+                Attendance.student_id.in_(student_ids),
+            ).with_for_update()
+        ).all()
+    }
+    attendance_records: list[Attendance] = []
+    for record_data in attendance_data.records:
+        record = existing_records.get(record_data.student_id)
+        if record is None:
+            record = Attendance(
+                student_id=record_data.student_id,
+                attendance_date=attendance_data.attendance_date,
+                status=record_data.status,
+            )
+            db.add(record)
+        else:
+            record.status = record_data.status
+        attendance_records.append(record)
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise
+    for record in attendance_records:
+        db.refresh(record)
+    return attendance_records
 
 
 def attendance_summary(records: list[Attendance]) -> dict[str, int | float]:

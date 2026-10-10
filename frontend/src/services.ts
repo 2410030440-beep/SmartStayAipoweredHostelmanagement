@@ -333,6 +333,88 @@ export const complaintService = {
 	}),
 }
 
+export type MessFeedback = {
+	id: number
+	student_id: number
+	rating: number
+	feedback: string
+	created_at: string
+}
+
+async function messRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+	const token = getAuthToken()
+	if (!token) throw new Error('Your session has expired. Please sign in again.')
+
+	let response: Response
+	try {
+		response = await fetch(`${API_BASE_URL}/api/mess${path}`, {
+			...options,
+			headers: { Authorization: `Bearer ${token}`, ...(options.headers ?? {}) },
+		})
+	} catch {
+		throw new Error('Unable to reach SmartStay. Check that the backend is running and try again.')
+	}
+
+	if (!response.ok) throw new Error(await getErrorMessage(response))
+	return response.json() as Promise<T>
+}
+
+export const messService = {
+	createFeedback: (input: { rating: number; feedback: string }) => messRequest<MessFeedback>('/feedback', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(input),
+	}),
+	getMyFeedback: () => messRequest<MessFeedback[]>('/feedback/my'),
+}
+
+export type VisitorStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CHECKED_IN' | 'CHECKED_OUT' | 'CANCELLED'
+
+export type VisitorRecord = {
+	id: number
+	visitor_number: string
+	student_id: number
+	visitor_name: string
+	visitor_phone: string
+	relationship: string
+	purpose: string
+	visit_date: string
+	expected_entry_time: string
+	expected_exit_time: string
+	status: VisitorStatus
+	check_in_at: string | null
+	check_out_at: string | null
+	created_at: string
+	updated_at: string
+}
+
+async function visitorRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+	const token = getAuthToken()
+	if (!token) throw new Error('Your session has expired. Please sign in again.')
+
+	let response: Response
+	try {
+		response = await fetch(`${API_BASE_URL}/api/visitors${path}`, {
+			...options,
+			headers: { Authorization: `Bearer ${token}`, ...(options.headers ?? {}) },
+		})
+	} catch {
+		throw new Error('Unable to reach SmartStay. Check that the backend is running and try again.')
+	}
+
+	if (!response.ok) throw new Error(await getErrorMessage(response))
+	return response.json() as Promise<T>
+}
+
+export const visitorService = {
+	create: (input: Pick<VisitorRecord, 'visitor_name' | 'visitor_phone' | 'relationship' | 'purpose' | 'visit_date' | 'expected_entry_time' | 'expected_exit_time'>) => visitorRequest<VisitorRecord>('', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(input),
+	}),
+	my: () => visitorRequest<VisitorRecord[]>('/my'),
+}
+
 export const attendanceService = {
 	getOverview: () => attendanceRequest<AttendanceSummary>('/my/summary'),
 	getRecords: (month?: string) => {

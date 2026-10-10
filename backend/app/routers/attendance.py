@@ -2,6 +2,7 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user, require_admin
@@ -10,6 +11,8 @@ from app.models.attendance import Attendance, AttendanceStatus
 from app.models.student import Student
 from app.models.user import User, UserRole
 from app.schemas.attendance import (
+    AttendanceBulkCreate,
+    AttendanceBulkResponse,
     AttendanceCreate,
     AttendanceResponse,
     AttendanceSummaryResponse,
@@ -21,6 +24,7 @@ from app.services.attendance_service import (
     get_attendance,
     get_attendance_by_student_and_date,
     list_attendance,
+    upsert_attendance_bulk,
     update_attendance,
 )
 from app.services.student_service import get_student_by_email
@@ -139,6 +143,38 @@ def get_attendance_records(
         month_start=month_start,
         next_month_start=next_month_start,
     )
+
+
+@router.post("/bulk", response_model=AttendanceBulkResponse)
+def mark_attendance_bulk(
+    attendance_data: AttendanceBulkCreate,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+) -> dict[str, date | int]:
+    student_ids = [record.student_id for record in attendance_data.records]
+    existing_student_ids = set(
+        db.scalars(select(Student.id).where(Student.id.in_(student_ids))).all()
+    )
+    missing_student_ids = [student_id for student_id in student_ids if student_id not in existing_student_ids]
+    if missing_student_ids:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Student not found: {missing_student_ids[0]}",
+        )
+    try:
+        records = upsert_attendance_bulk(db, attendance_data)
+    except IntegrityError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Bulk attendance could not be saved because of a database conflict",
+        ) from error
+    present_count = sum(record.status == AttendanceStatus.PRESENT for record in records)
+    return {
+        "attendance_date": attendance_data.attendance_date,
+        "total_students": len(records),
+        "present": present_count,
+        "absent": len(records) - present_count,
+    }
 
 
 @router.post("", response_model=AttendanceResponse, status_code=status.HTTP_201_CREATED)

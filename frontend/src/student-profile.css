@@ -1,0 +1,146 @@
+.student-profile-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.student-profile-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 1rem;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.student-profile-error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+}
+
+.student-profile-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.student-profile-hero {
+  padding: 2rem;
+}
+
+.student-profile-header-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.student-avatar-large {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-size: 1.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  flex-shrink: 0;
+}
+
+.student-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.student-hero-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.student-hero-title-row h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.student-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.student-details-section {
+  padding: 1.75rem;
+}
+
+.profile-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem;
+  background: var(--surface-subtle, #f8fafc);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.profile-field small {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.profile-field strong {
+  font-size: 1rem;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.profile-field-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text);
+}
+
+.profile-field-with-icon svg {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.verified-indicator {
+  color: #059669;
+}
+
+.verified-indicator svg {
+  color: #059669;
+}
+
